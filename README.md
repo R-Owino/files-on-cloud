@@ -2,9 +2,9 @@
 <h1 align="center">FilesOnCloud - Elegant Simplicity in File Sharing</h1>
 <!-- markdownlint-enable MD033 -->
 
-[![forthebadge](/badges/made-with-python.svg)](https://forthebadge.com)
-[![forthebadge](/badges/built-with-love.svg)](https://forthebadge.com)
-[![forthebadge](/badges/powered-by-water.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)](https://forthebadge.com)
 
 [![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
@@ -13,8 +13,7 @@
 [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
-![CI](https://github.com/R-Owino/files-on-cloud/actions/workflows/linting.yaml/badge.svg)
-![CD](https://github.com/R-Owino/files-on-cloud/actions/workflows/main.yaml/badge.svg)
+![CI](https://github.com/R-Owino/files-on-cloud/actions/workflows/main.yaml/badge.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
 
 FilesOnCloud is a web application that enables users to share files on a shared platform. Authenticated users can upload, download, view, search, and delete files, while guest users can only view and search files.
@@ -32,13 +31,13 @@ FilesOnCloud is a web application that enables users to share files on a shared 
 9. Delete files from Amazon S3 with corresponding metadata removed from DynamoDB.
 10. File search functionality.
 11. User account deletion.
-12. Guest user access — limited to viewing and searching files.
+12. Guest user access - limited to viewing and searching files.
 
 ## Architecture
 
 ![arch-diagram](./images/filesoncloud-dev-v2.png)
 
-1. **Code Commit** - Developer pushes Flask app code and Terraform modules, triggering the CI/CD pipeline.
+1. **Code Commit** - Developer pushes Flask app code and Terraform modules, triggering the CI pipeline.
 2. **GitHub Actions** - Orchestrates build, test, and deployment; runs Terraform to provision/update AWS resources.
 3. **ECR Authentication** - GitHub Actions authenticates with Amazon ECR to push Docker images.
 4. **Docker Build & Push** - Flask and Terraform Dockerfiles are built into images and pushed to ECR.
@@ -48,7 +47,7 @@ FilesOnCloud is a web application that enables users to share files on a shared 
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.x, Flask 3.1, Gunicorn |
+| Backend | Python 3.11+, Flask 3.1, Gunicorn |
 | Auth | Amazon Cognito |
 | Storage | Amazon S3, Amazon DynamoDB |
 | CDN | Amazon CloudFront |
@@ -56,11 +55,11 @@ FilesOnCloud is a web application that enables users to share files on a shared 
 | API | AWS API Gateway |
 | Caching | Redis 7 |
 | IaC | Terraform 1.14 |
-| CI/CD | GitHub Actions |
+| CI | GitHub Actions |
 
 ## Prerequisites
 
-- [Python 3.x](https://www.python.org/downloads/)
+- [Python 3.11+](https://www.python.org/downloads/)
 - [Docker](https://docs.docker.com/get-docker/) and Docker Compose
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 - An [IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html) with administrative privileges
@@ -162,3 +161,4 @@ FilesOnCloud is open source under the MIT License. See the [LICENSE](LICENSE) fi
 2. [Part 2: The Infrastructure](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-6fff6bbacc3d)
 3. [Part 3: The App](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-aee7c185867b)
 4. [Part 4: The Deployment](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-64af111843b9)
+
