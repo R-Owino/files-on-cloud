@@ -1,0 +1,25 @@
+# Private SSH keys
+filesoncloud-nat-key.pem
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Terraform
+*.tfstate
