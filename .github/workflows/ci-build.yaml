@@ -1,0 +1,113 @@
+name: Build Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      build-test-image:
+        description: "Whether to build and push test image"
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      AWS_ACCOUNT_ID: { required: true }
+      AWS_REGION: { required: true }
+      PRIVATE_KEY: { required: true }
+    outputs:
+      image-tag:
+        description: "Docker image tag"
+        value: ${{ jobs.build.outputs.image-tag }}
+      commit-sha:
+        description: "Git commit SHA"
+        value: ${{ jobs.build.outputs.commit-sha }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.extract-tag.outputs.tag }}
+      commit-sha: ${{ github.sha }}
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ECR_REGISTRY }}/filesoncloud-app
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Configure AWS credentials
+        uses: ./.github/actions/aws-setup
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-oidc-role
+          role-session-name: github-build
+
+      - name: Authenticate with Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create private key file
+        run: |
+          mkdir -p api/v1/routes
+          echo "${{ secrets.PRIVATE_KEY }}" > api/v1/routes/private_key.pem
+
+      - name: Extract Docker image tag
+        id: extract-tag
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA=${SHORT_SHA:0:7}
+
+          if [ "${{ github.ref }}" == "refs/heads/remmy" ]; then
+            TAG="latest"
+          else
+            TAG="${BRANCH_NAME}-${SHORT_SHA}"
+          fi
+
+          echo "Generated tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push production Docker image
+        id: build-image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: api/Dockerfile
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+
+      - name: Build and push test Docker image
+        if: inputs.build-test-image
+        id: build-test-image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: api/Dockerfile
+          target: test
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ steps.extract-tag.outputs.tag }}-test
+          platforms: linux/amd64
+
+      - name: Build and push Redis Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: redis/Dockerfile
+          push: true
+          tags: "${{ env.ECR_REGISTRY }}/filesoncloud-redis:${{ steps.extract-tag.outputs.tag }}"
