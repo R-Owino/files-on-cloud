@@ -1,0 +1,70 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_call:
+    inputs:
+      image-tag: { required: true, type: string }
+    secrets:
+      AWS_ACCOUNT_ID: { required: true }
+      AWS_REGION: { required: true }
+    outputs:
+      cluster-name:
+        description: "ECS cluster name"
+        value: ${{ jobs.deploy-infra.outputs.cluster-name }}
+      service-name:
+        description: "ECS service name"
+        value: ${{ jobs.deploy-infra.outputs.service-name }}
+      task-definition-family:
+        description: "ECS task definition family"
+        value: ${{ jobs.deploy-infra.outputs.task-definition-family }}
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    outputs:
+      cluster-name: ${{ steps.terraform-outputs.outputs.cluster-name }}
+      service-name: ${{ steps.terraform-outputs.outputs.service-name }}
+      task-definition-family: ${{ steps.terraform-outputs.outputs.task-definition-family }}
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform-setup
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/aws-setup
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-oidc-role
+          role-session-name: github-deploy
+
+      - name: Run Terraform init
+        run: terraform -chdir=infra init
+
+      - name: Plan and apply infrastructure
+        run: |
+          FLASK_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}"
+          REDIS_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-redis:${{ inputs.image-tag }}"
+
+          terraform -chdir=infra plan \
+            -var="flask_image_uri=${FLASK_IMAGE_URI}" \
+            -var="redis_image_uri=${REDIS_IMAGE_URI}" \
+            -out=tfplan
+
+      - name: Run Terraform apply
+        run: terraform -chdir=infra apply -auto-approve tfplan
+
+      - name: Infra outputs for deploy app pipeline
+        id: terraform-outputs
+        run: |
+          CLUSTER_NAME=$(terraform -chdir=infra output -raw ecs_cluster_name)
+          SERVICE_NAME=$(terraform -chdir=infra output -raw ecs_service_name)
+          TASK_DEF_FAMILY=$(terraform -chdir=infra output -raw ecs_task_definition_family)
+
+          echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+          echo "service-name=${SERVICE_NAME}" >> $GITHUB_OUTPUT
+          echo "task-definition-family=${TASK_DEF_FAMILY}" >> $GITHUB_OUTPUT
