@@ -1,0 +1,130 @@
+services:
+  terraform:
+    container_name: infra
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+      target: production
+    environment:
+      - TF_LOG=INFO
+    volumes:
+      - ./:/app
+      - ~/.aws:/home/terraform/.aws:ro
+      - terraform_cache:/home/terraform/.terraform
+    working_dir: /app
+    networks:
+      - filesoncloud
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      "set -e;
+      terraform -chdir=infra init -input=false;
+      terraform -chdir=infra validate;
+      terraform -chdir=infra plan -out=tfplan;
+      terraform -chdir=infra apply -input=false tfplan;
+      touch /app/terraform-complete"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "if [ -f /app/terraform-complete ]; then exit 0; else exit 1; fi"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  redis:
+    container_name: redis
+    build:
+      context: .
+      dockerfile: redis/Dockerfile
+    volumes:
+      - ./scripts:/scripts
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - AWS_SECRET_NAME=filesoncloud-app-secrets
+      - AWS_REGION=us-west-2
+    networks:
+      - filesoncloud
+    healthcheck:
+      test: ["CMD", "sh", "/scripts/redis-health-check.sh"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: production
+    ports:
+      - "5000:5000"
+    volumes:
+      - ~/.aws:/home/appuser/.aws:ro
+      - ./api/v1/static:/app/v1/static:ro
+      - ./api/v1/templates:/app/v1/templates:ro
+      - api_tmp:/tmp
+    depends_on:
+      terraform:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - filesoncloud
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=local
+      - REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/health/liveness', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  health-monitor:
+    image: curlimages/curl:latest
+    container_name: health-monitor
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - filesoncloud
+    entrypoint: ["sh"]
+    command: >
+      -c "
+      while true; do
+        echo '=== Health Check Report ===' &&
+        echo 'Timestamp:' $$(date) &&
+        echo 'API Health:' &&
+        curl -s http://api:5000/health || echo 'API health check failed' &&
+        echo '=========================' &&
+        sleep 60
+      done"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  filesoncloud:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local
+  terraform_cache:
+    driver: local
+  api_tmp:
+    driver: local
