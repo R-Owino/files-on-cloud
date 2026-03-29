@@ -1,0 +1,71 @@
+name: Deploy Flask Application
+
+on:
+  workflow_call:
+    inputs:
+      image-tag: { required: true, type: string }
+      cluster-name: { required: true, type: string }
+      service-name: { required: true, type: string }
+      task-definition-family: { required: true, type: string }
+    secrets:
+      AWS_ACCOUNT_ID: { required: true }
+      AWS_REGION: { required: true }
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/aws-setup
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-oidc-role
+          role-session-name: github-deploy-app
+
+      - name: Debug inputs
+        run: |
+          echo "Received inputs:"
+          echo "  cluster-name: '${{ inputs.cluster-name }}'"
+          echo "  service-name: '${{ inputs.service-name }}'"
+          echo "  task-definition-family: '${{ inputs.task-definition-family }}'"
+
+          if [[ -z "${{ inputs.task-definition-family }}" ]]; then
+            echo "ERROR: task-definition-family is empty"
+            exit 1
+          fi
+
+      - name: Fetch ECS task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition "${{ inputs.task-definition-family }}" \
+            --query taskDefinition > task-definition.json
+
+      - name: Update task definition with new Flask image
+        id: flask-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: filesoncloud-app-container
+          image: "${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}"
+
+      - name: Update task definition with new Redis image
+        id: redis-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: filesoncloud-redis-container
+          image: "${{ env.ECR_REGISTRY }}/filesoncloud-redis:${{ inputs.image-tag }}"
+
+      - name: Deploy ECS service with new task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.redis-task-def.outputs.task-definition }}
+          service: ${{ inputs.service-name }}
+          cluster: ${{ inputs.cluster-name }}
+          wait-for-service-stability: true
