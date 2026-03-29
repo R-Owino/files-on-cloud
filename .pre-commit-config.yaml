@@ -1,0 +1,43 @@
+exclude: "^infra/modules/lambda/layer_package/"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v6.0.0"
+    hooks:
+      - id: "end-of-file-fixer"
+        exclude: \.(png|jpg|jpeg|gif|bmp|svg|ico|pem)$
+      - id: "trailing-whitespace"
+        exclude: \.(png|jpg|jpeg|gif|bmp|svg|ico|pem)$
+      - id: "check-yaml"
+        name: "check yaml"
+      - id: "check-added-large-files"
+        name: "check for added large files"
+      - id: "check-merge-conflict"
+        name: "check for merge conflicts"
+      - id: "check-executables-have-shebangs"
+        name: "check that executables have shebangs"
+  
+  - repo: "https://github.com/compilerla/conventional-pre-commit"
+    rev: "v4.3.0"
+    hooks:
+      - id: "conventional-pre-commit"
+        name: "Conventional Commit"
+        stages: ["commit-msg"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.15.8"
+    hooks:
+      - id: "ruff"
+        name: "ruff"
+        types:
+          - "python"
+        args:
+          - "--fix"
+          - "--output-format=full"
+          - "--exit-non-zero-on-fix"
+          - "--extend-select=COM"
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: "v0.11.0.1"
+    hooks:
+      - id: shellcheck
