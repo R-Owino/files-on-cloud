@@ -23,7 +23,7 @@ jobs:
       - name: Setup AWS
         uses: ./.github/actions/aws-setup
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-oidc-role
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/filesoncloud-oidc
           role-session-name: github-test
 
       - name: Setup Terraform
