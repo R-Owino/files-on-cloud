@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Files on Cloud</title>
+    <script
+      src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+      type="module"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/index.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Animated background particles -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="container">
+      <!-- Navigation -->
+      <nav>
+        <div class="logo">
+          <div class="logo-icon"></div>
+          Files on Cloud
+        </div>
+      </nav>
+
+      <!-- Hero section -->
+      <section class="hero">
+        <div class="backdrop"></div>
+        <div class="hero-content">
+          <h1>File Sharing Reimagined</h1>
+          <h2>Elegant Simplicity in File Sharing</h2>
+          <p>
+            Files on Cloud is a secure and intuitive platform that allows you to
+            store, share, and access your important documents from anywhere in
+            the world. Experience seamless file management with advanced
+            security features.
+          </p>
+          <a href="{{ url_for('api.main.main') }}" class="cta-button"
+            >Get Started</a
+          >
+        </div>
+        <div class="hero-visual">
+          <div class="files-animation">
+            <div class="file"></div>
+            <div class="file"></div>
+            <div class="file"></div>
+          </div>
+          <div class="lottie-container">
+            <dotlottie-player
+              src="https://lottie.host/466bad7b-5a7d-4df5-a873-1640da15b399/OYDoHOKAHN.lottie"
+              background="transparent"
+              speed="1"
+              style="width: 400px; height: 400px"
+              loop
+              autoplay
+            >
+            </dotlottie-player>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features section -->
+      <section class="features">
+        <h2 class="section-title">Why Choose Files on Cloud?</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                  d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"
+                ></path>
+              </svg>
+            </div>
+            <h3>Easy Sharing</h3>
+            <p>
+              Share your files with anyone, anywhere with just a few clicks.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <h3>Advanced Security</h3>
+            <p>
+              Your files are protected with enterprise-grade encryption,
+              ensuring your data remains private and secure at all times.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                  d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"
+                />
+              </svg>
+            </div>
+            <h3>Blazing Fast Search</h3>
+            <p>
+              Find exactly the file you need using powerful search capabilities.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>&copy; 2025 Files on Cloud. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

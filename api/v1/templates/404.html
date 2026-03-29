@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404</title>
+    <script
+      src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+      type="module"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/404.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Animated background particles -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <!-- Error container -->
+    <div class="error-container">
+      <div class="backdrop"></div>
+
+      <!-- Logo -->
+      <div class="app-logo">
+        <div class="logo-icon"></div>
+        <div class="logo-text">Files on Cloud</div>
+      </div>
+
+      <dotlottie-player
+        src="https://lottie.host/b7b2fe7a-e684-45b6-bfe1-082f9e162b1f/F7PBlh3QZk.lottie"
+        background="transparent"
+        speed="1"
+        loop
+        autoplay
+      >
+      </dotlottie-player>
+
+      <h1 class="error-title">Oops! Page Not Found</h1>
+
+      <p class="error-message">
+        The page is gone, but the files are still here.
+      </p>
+
+      <a href="{{ url_for('api.landing.landing') }}" class="home-link">Return to Home</a>
+    </div>
+  </body>
+</html>

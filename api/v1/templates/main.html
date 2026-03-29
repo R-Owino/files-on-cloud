@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Animated background particles -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="app-container">
+      <div class="sidebar-overlay"></div>
+      <div class="sidebar">
+        <div class="sidebar-toggle">
+          <i data-lucide="chevron-right"></i>
+        </div>
+        <div class="sidebar-content">
+          <!--Home link -->
+          <a href="/" class="home-link">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+          </a>
+
+          {% if is_logged_in %}
+          <!--Authenticated user section -->
+          <div class="user-icon">
+            <i data-lucide="user"></i>
+          </div>
+          <div class="user-profile-container">
+            <div class="user-profile-details">
+              <div class="user-email-container">
+                <div class="user-email">{{ username }}</div>
+                <i class="down-arrow" data-lucide="chevron-down"></i>
+              </div>
+              <div class="logout-section">
+                <form
+                  action="{{ url_for('api.logout.logout') }}"
+                  method="post"
+                  class="logout-form"
+                >
+                  <button type="submit" class="logout-btn">Logout</button>
+                </form>
+                <button class="delete-account-btn">Delete Account</button>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <!--Guest user section -->
+          <div class="guest-actions">
+            <a
+              href="{{ url_for('api.login.login') }}"
+              class="auth-link login-link"
+            >
+              <i data-lucide="log-in"></i>
+              <span>Login</span>
+            </a>
+            <a
+              href="{{ url_for('api.register.register') }}"
+              class="auth-link register-link"
+            >
+              <i data-lucide="user-plus"></i>
+              <span>Sign Up</span>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="dashboard-container">
+        <div class="backdrop"></div>
+        <div class="header">
+          <div class="mobile-menu-toggle">
+            <i data-lucide="menu"></i>
+          </div>
+          <div class="logo">
+            <div class="logo-icon"></div>
+            <h1 class="welcome-message">Files on Cloud</h1>
+          </div>
+          <div class="header-divider"></div>
+        </div>
+
+        <div class="upload-section">
+          <div class="upload-helper-text">
+            {% if is_logged_in %} Upload files to the shared cloud storage.
+            Supported file types include documents, images, spreadsheets, and
+            more. Maximum file size is 2.5GB. {% else %} Browse the file catalog
+            and search for files.
+            {% endif %}
+          </div>
+          {% if is_logged_in %}
+          <input type="file" id="file-upload" class="upload-input" />
+          <label for="file-upload" class="upload-label">
+            <i data-lucide="upload"></i>
+            Choose File
+          </label>
+          <div class="file-info" style="display: none">
+            Selected file: <span id="selected-filename"></span>
+            <button id="upload-button" class="upload-button">
+              Start Upload
+            </button>
+          </div>
+          <div class="progress-container" style="display: none">
+            <div class="progress-bar" id="upload-progress"></div>
+          </div>
+          <div id="upload-status" class="upload-status"></div>
+          {% endif %}
+        </div>
+
+        <div class="recent-files">
+          <div class="recent-files-header">
+            <h2 class="recent-files-title">Recent Files</h2>
+            <div class="search-container">
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Search files..."
+                aria-label="Search files"
+              />
+            </div>
+          </div>
+          <div class="files-grid" id="files-container">
+            <!-- Files will be dynamically populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login required modal -->
+    <div id="loginModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-content">
+          <div class="modal-loading" id="loginModalLoading" style="display: none;">
+              <div class="spinner"></div>
+          </div>
+          <h3 class="modal-title">Login Required</h3>
+          <p class="modal-description">
+            You need to be logged in to perform this action. Please log in or
+            create an account to continue.
+          </p>
+          <div class="modal-buttons">
+            <button class="modal-btn modal-cancel" id="loginModalClose">
+              Continue Browsing
+            </button>
+            <button class="modal-btn modal-primary" id="loginModalLogin">
+                Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete account modal -->
+    <div id="deleteAccountModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-content">
+          <h3 class="modal-title">Delete Account</h3>
+          <p class="modal-description">
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </p>
+          <div class="modal-buttons">
+            <button class="modal-btn modal-cancel" id="deleteModalCancel">Cancel</button>
+            <button class="modal-btn modal-delete" id="deleteModalDelete">Delete Account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // pass auth state to JS
+      window.isLoggedIn = {{ is_logged_in | tojson }};
+      window.loginUrl = "{{ url_for('api.login.login') }}";
+    </script>
+    <script
+      type="module"
+      src="{{ url_for('static', filename='js/main.js') }}"
+    ></script>
+  </body>
+</html>

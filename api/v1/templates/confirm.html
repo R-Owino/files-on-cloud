@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Account</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/confirm.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Animated background particles -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <!-- Verification container -->
+    <div class="verification-container">
+      <div class="backdrop"></div>
+
+      <!-- Logo -->
+      <div class="app-logo">
+        <div class="logo-icon"></div>
+        <div class="logo-text">Files on Cloud</div>
+      </div>
+
+      <h1 class="verification-header">Verify Your Account</h1>
+
+      <p class="verification-message">
+        A 6-digit verification code has been sent to your email address.
+        Please enter the code below to confirm your account.
+      </p>
+
+      <form
+        id="verification-form"
+        action="{{ url_for('api.confirm.confirm') }}"
+        method="post"
+      >
+        <div class="input-group">
+          <input
+            type="text"
+            id="verification-code"
+            name="code"
+            maxlength="6"
+            placeholder="______"
+            class="verification-code-input"
+            required
+          />
+        </div>
+
+        <p class="timeout-warning">
+          Session will expire in <span id="timeout-counter">3:00</span>
+        </p>
+
+        <div class="button-group">
+          <button type="submit" id="confirm-button" class="confirm-button">
+            Confirm
+          </button>
+          <button type="button" class="resend-button" onclick="resendCode()">
+            Resend Code
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/confirm.js') }}"></script>
+  </body>
+</html>
