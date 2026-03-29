@@ -1,0 +1,11 @@
+name: Terraform Setup
+description: Composite action that sets up Terraform
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.11.3
+        terraform_wrapper: false

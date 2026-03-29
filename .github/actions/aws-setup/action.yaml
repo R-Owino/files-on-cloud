@@ -1,0 +1,20 @@
+name: AWS Credentials Setup
+description: Composite action to configure AWS credentials by assuming an IAM role
+
+inputs:
+  role-to-assume:
+    description: ARN of the IAM role to assume for AWS Credentials
+    required: true
+  role-session-name:
+    description: Identifier for the assumed role session
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        role-session-name: ${{ inputs.role-session-name }}
+        aws-region: ${{ env.AWS_REGION }}
