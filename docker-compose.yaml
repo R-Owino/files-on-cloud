@@ -63,8 +63,6 @@ services:
       - ./api/v1/templates:/app/v1/templates:ro
       - api_tmp:/tmp
     depends_on:
-      terraform:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
