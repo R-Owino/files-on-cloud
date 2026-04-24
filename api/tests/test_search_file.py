@@ -18,7 +18,7 @@ def client():
 def test_search_files_missing_config(client: FlaskClient):
     """Test search fails when config is missing"""
     with patch(
-        'v1.routes.search_file.AWS_API_GATEWAY_FETCH_METADATA_URL', ''
+        'v1.routes.search_file.AWS_API_GATEWAY_FETCH_METADATA_URL', '',
     ):
         response = client.get("/search-files?search=term")
         assert response.status_code == 500

@@ -37,12 +37,12 @@ def delete_file():
 
     if not file_key:
         return jsonify({
-            "error": "Missing file_key parameter"
+            "error": "Missing file_key parameter",
         }), 400
 
     if ".." in file_key or file_key.startswith("/"):
         return jsonify({
-            "error": "Invalid file key"
+            "error": "Invalid file key",
         }), 400
 
     try:
@@ -51,7 +51,7 @@ def delete_file():
         response = requests.delete(
             AWS_API_GATEWAY_DELETE_URL,
             headers=headers,
-            params={"file_key": file_key}
+            params={"file_key": file_key},
         )
 
         return jsonify(response.json()), response.status_code
@@ -59,5 +59,5 @@ def delete_file():
     except requests.RequestException as e:
         logger.error(f"Network error: {str(e)}")
         return jsonify({
-            "error": f"Network error: {str(e)}"
+            "error": f"Network error: {str(e)}",
         }), 500

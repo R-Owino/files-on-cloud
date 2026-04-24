@@ -30,16 +30,16 @@ def resend_verification():
 
     if not email:
         return jsonify(
-            {"success": False, "message": "No email to verify."}
+            {"success": False, "message": "No email to verify."},
         ), 400
 
     result = resend_verification_code(email)
 
     if result["Success"]:
         return jsonify(
-            {"success": True, "message": "Verfication code resent."}
+            {"success": True, "message": "Verfication code resent."},
         ), 200
     else:
         return jsonify(
-            {"success": False, "message": result["message"]}
+            {"success": False, "message": result["message"]},
         ), 500

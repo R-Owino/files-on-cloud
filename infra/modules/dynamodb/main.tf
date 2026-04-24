@@ -40,4 +40,3 @@ resource "aws_dynamodb_table" "documents_metadata" {
   }
 
 }
-

@@ -26,14 +26,14 @@ def test_login_get(client: FlaskClient):
     "tokens": {
         "access_token": "mock_access",
         "id_token": "mock_id",
-        "refresh_token": "mock_refresh"
-    }
+        "refresh_token": "mock_refresh",
+    },
 })
 def test_login_post_success(mock_login_user, client: FlaskClient):
     """Test successful user login redirects to main page"""
     response = client.post("/login", data={
         "email": "testuser@example.com",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 302
@@ -49,13 +49,13 @@ def test_login_post_success(mock_login_user, client: FlaskClient):
 
 @patch("v1.routes.login.login_user", return_value={
     "Success": False,
-    "message": "Invalid credentials."}
+    "message": "Invalid credentials."},
 )
 def test_login_post_failure(mock_login_user, client: FlaskClient):
     """Test failed user login re-renders login page"""
     response = client.post("/login", data={
         "email": "testuser@example.com",
-        "password": "WrongPass"
+        "password": "WrongPass",
     })
 
     assert response.status_code == 401
@@ -63,13 +63,13 @@ def test_login_post_failure(mock_login_user, client: FlaskClient):
 
 @patch("v1.routes.login.login_user", return_value={
     "Success": False,
-    "message": "User not found. Please check your credentials."
+    "message": "User not found. Please check your credentials.",
 })
 def test_login_post_user_not_found(mock_login_user, client: FlaskClient):
     """Test failed user login with user not found"""
     response = client.post("/login", data={
         "email": "nonexistent@example.com",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 404
@@ -78,7 +78,7 @@ def test_login_post_user_not_found(mock_login_user, client: FlaskClient):
 def test_login_post_missing_email(client: FlaskClient):
     """Test login attempt with missing email field"""
     response = client.post("/login", data={
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 400
@@ -87,7 +87,7 @@ def test_login_post_missing_email(client: FlaskClient):
 def test_login_post_missing_password(client: FlaskClient):
     """Test login attempt with missing password field"""
     response = client.post("/login", data={
-        "email": "testuser@example.com"
+        "email": "testuser@example.com",
     })
 
     assert response.status_code == 400
@@ -98,14 +98,14 @@ def test_login_post_missing_password(client: FlaskClient):
     "tokens": {
         "access_token": "mock_access",
         "id_token": "mock_id",
-        "refresh_token": "mock_refresh"
-    }
+        "refresh_token": "mock_refresh",
+    },
 })
 def test_login_session_timeout_config(mock_login_user, client: FlaskClient):
     """Test that session is configured to be permanent"""
     response = client.post("/login", data={
         "email": "testuser@example.com",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 302
@@ -118,7 +118,7 @@ def test_login_unexpected_error(mock_login_user, client: FlaskClient):
     """Test handling of unexpected error during login"""
     response = client.post("/login", data={
         "email": "testuser@example.com",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 500

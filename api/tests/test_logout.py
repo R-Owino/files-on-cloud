@@ -50,7 +50,7 @@ def test_logout_partial_session(client):
         session["email"] = "test@example.com"
         session["other_data"] = "value"
 
-    response = client.get("/logout")
+    client.get("/logout")
 
     with client.session_transaction() as session:
         assert "email" not in session

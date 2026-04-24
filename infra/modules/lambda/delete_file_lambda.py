@@ -26,8 +26,8 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps({
-                    'error': 'Missing file_key'
-                })
+                    'error': 'Missing file_key',
+                }),
             }
 
         # delete form s3
@@ -38,8 +38,8 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 500,
                 'body': json.dumps({
-                    'error': 'Failed to delete from S3'
-                })
+                    'error': 'Failed to delete from S3',
+                }),
             }
 
         # delete metadata from DynamoDB
@@ -48,7 +48,7 @@ def lambda_handler(event, context):
             # find item with matching file_key
             response = table.scan(
                 FilterExpression='file_key = :key',
-                ExpressionAttributeValues={':key': file_key}
+                ExpressionAttributeValues={':key': file_key},
             )
 
             items = response.get('Items', [])
@@ -59,19 +59,19 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 500,
                 'body': json.dumps({
-                    'error': 'Failed to delete from DynamoDB'
-                })
+                    'error': 'Failed to delete from DynamoDB',
+                }),
             }
 
         return {
             'statusCode': 200,
             'body': json.dumps({
-                'message': 'File deleted successfully'
-            })
+                'message': 'File deleted successfully',
+            }),
         }
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
         }

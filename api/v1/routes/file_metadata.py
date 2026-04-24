@@ -5,9 +5,11 @@ import logging
 import requests
 from flask import current_app, jsonify, request
 
+from flask import Blueprint
+
 from v1.config import Config
 
-from . import file_metadata_bp
+file_metadata_bp = Blueprint("file_metadata", __name__)
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ def file_metadata():
         if not AWS_API_GATEWAY_FETCH_METADATA_URL:
             logger.error("Missing API Gateway URL configuration.")
             return jsonify(
-                {"error": "Server misconfiguration: missing API URL."}
+                {"error": "Server misconfiguration: missing API URL."},
             ), 500
 
         redis_client = get_redis_client()
@@ -80,7 +82,7 @@ def file_metadata():
             AWS_API_GATEWAY_FETCH_METADATA_URL,
             params=params,
             headers=headers,
-            timeout=10
+            timeout=10,
         )
 
         if response.status_code == 200:
@@ -92,7 +94,7 @@ def file_metadata():
                     redis_client.setex(
                         cache_key,
                         300,
-                        json.dumps(response_data)
+                        json.dumps(response_data),
                     )
                     logger.info(f"Cached response for key: {cache_key}")
                 except Exception as e:
@@ -100,7 +102,7 @@ def file_metadata():
             return jsonify(response_data), 200
         else:
             return jsonify({
-                "error": f"Failed to fetch files: {response.text}"
+                "error": f"Failed to fetch files: {response.text}",
             }), response.status_code
     except requests.RequestException as e:
         logger.error(f"Network error: {str(e)}")

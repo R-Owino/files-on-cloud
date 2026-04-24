@@ -18,11 +18,11 @@ def test_invalidate_cloudfront_path_success(client):
             'InvalidationBatch': {
                 'Paths': {
                     'Quantity': 1,
-                    'Items': ['/documents/testfile.txt']
+                    'Items': ['/documents/testfile.txt'],
                 },
-                'CallerReference': 'test-ref'
-            }
-        }
+                'CallerReference': 'test-ref',
+            },
+        },
     }
 
     with patch("v1.routes.upload.boto3.client") as mock_boto3:
@@ -62,8 +62,8 @@ def test_invalidate_cloudfront_path_client_error(client):
                             "Error":
                             {
                                 "Code": "InvalidArgument",
-                                "Message": "Invalid distribution ID"
-                            }
+                                "Message": "Invalid distribution ID",
+                            },
                         },
                         "CreateInvalidation",
                     )

@@ -10,12 +10,8 @@ from flask_session import Session
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import redis
-import v1.routes.check_file
-import v1.routes.file_metadata
-import v1.routes.search_file
 
 # ensures these routes are accessible
-import v1.routes.upload
 from v1.config import Config
 from v1.routes import file_metadata_bp, upload_bp
 from v1.routes.confirm import confirm_bp
@@ -28,7 +24,9 @@ from v1.routes.login import login_bp
 from v1.routes.logout import logout_bp
 from v1.routes.main import main_bp
 from v1.routes.register import register_bp
+from v1.routes.check_file import check_file_bp
 from v1.routes.resend_code import resend_bp
+from v1.routes.search_file import search_file_bp
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +41,11 @@ is_production = environment == "prod"
 
 if is_production:
     app.wsgi_app = ProxyFix(
-        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1,
     )
     logger.info("ProxyFix middleware enabled for production environment")
     session_cookie_domain = os.getenv(
-        'SESSION_COOKIE_DOMAIN', '.filesoncloud.site'
+        'SESSION_COOKIE_DOMAIN', '.filesoncloud.site',
     )
 else:
     session_cookie_domain = None
@@ -79,7 +77,7 @@ else:
         socket_connect_timeout=10,
         socket_timeout=10,
         retry_on_timeout=True,
-        health_check_interval=30
+        health_check_interval=30,
     )
 
     app.config["SESSION_REDIS"] = redis_client
@@ -90,7 +88,7 @@ else:
         display_url = redis_url.split('://')[1]
 
     logger.info(
-        f"Configured Redis session store with URL: {display_url}@[REDACTED]"
+        f"Configured Redis session store with URL: {display_url}@[REDACTED]",
     )
 
 # initialize Session
@@ -109,8 +107,10 @@ api_bp.register_blueprint(login_bp)
 api_bp.register_blueprint(delete_account_bp)
 api_bp.register_blueprint(main_bp)
 api_bp.register_blueprint(upload_bp)
+api_bp.register_blueprint(check_file_bp)
 api_bp.register_blueprint(download_bp)
 api_bp.register_blueprint(file_metadata_bp)
+api_bp.register_blueprint(search_file_bp)
 api_bp.register_blueprint(delete_bp)
 api_bp.register_blueprint(logout_bp)
 api_bp.register_blueprint(landing_bp)
@@ -142,7 +142,7 @@ with app.app_context():
             retrieved = redis_client.get(test_session_key)
             logger.info(
                 "Redis session test - stored: test_value, retrieved: "
-                f"{retrieved}"
+                f"{retrieved}",
             )
 
             if retrieved != b"test_value":

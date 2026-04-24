@@ -70,7 +70,7 @@ def validate_cognito_token(token):
             key,
             algorithms=['RS256'],
             audience=None,
-            options={"verify_aud": False}
+            options={"verify_aud": False},
         )
 
         return decoded
@@ -100,7 +100,7 @@ def lambda_handler(event, context):
                 user_info = validate_cognito_token(auth_header)
                 if user_info:
                     logger.info(
-                        f"Authenticted user: {user_info.get('sub', 'unknown')}"
+                        f"Authenticted user: {user_info.get('sub', 'unknown')}",
                     )
                 else:
                     logger.info("Invalid or expired token provided")
@@ -129,10 +129,10 @@ def lambda_handler(event, context):
                 "file_key": file.get("file_key", ""),
                 "upload_timestamp": (
                     file.get(
-                        "upload_timestamp", "1970-01-01T00:00:00.000000+00:00"
+                        "upload_timestamp", "1970-01-01T00:00:00.000000+00:00",
                     )
                 ),
-                "size_bytes": file.get("size_bytes", 0)
+                "size_bytes": file.get("size_bytes", 0),
             }
 
             # only for authenticated users
@@ -145,7 +145,7 @@ def lambda_handler(event, context):
         sorted_files = sorted(
             extracted_files,
             key=lambda x: x["upload_timestamp"],
-            reverse=True
+            reverse=True,
         )
 
         # apply search filter if search term exists
@@ -165,13 +165,13 @@ def lambda_handler(event, context):
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             },
             'body': json.dumps({
                 'message': 'Success',
                 'files': sorted_files,
-                'authenticated': user_info is not None
-            })
+                'authenticated': user_info is not None,
+            }),
         }
 
     except Exception as e:
@@ -180,7 +180,7 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
             },
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': str(e)}),
         }

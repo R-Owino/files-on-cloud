@@ -1,10 +1,9 @@
-
 import boto3
 import logging
-from . import upload_bp
-from v1.config import Config
+from flask import Blueprint, request, jsonify, session
 from flask_cors import cross_origin
-from flask import request, jsonify, session
+from v1.config import Config
+
 from werkzeug.utils import secure_filename
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
@@ -12,10 +11,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@upload_bp.route("/upload/check-file-exists", methods=["POST"])
+check_file_bp = Blueprint("check_file", __name__)
+
+@check_file_bp.route("/upload/check-file-exists", methods=["POST"])
 @cross_origin(
     origins="*",
-    allow_headers=["Content-Type", "Authorization"]
+    allow_headers=["Content-Type", "Authorization"],
 )
 def check_file_exists():
     """
@@ -50,7 +51,7 @@ def check_file_exists():
         table = dynamodb.Table(TABLE_NAME)
         response = table.scan(
             FilterExpression='file_name = :filename',
-            ExpressionAttributeValues={':filename': secure_name}
+            ExpressionAttributeValues={':filename': secure_name},
         )
 
         exists = len(response.get('Items', [])) > 0

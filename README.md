@@ -2,9 +2,9 @@
 <h1 align="center">FilesOnCloud - Elegant Simplicity in File Sharing</h1>
 <!-- markdownlint-enable MD033 -->
 
-[![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](https://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com)
+[![forthebadge](/badges/made-with-python.svg)](https://forthebadge.com)
+[![forthebadge](/badges/built-with-love.svg)](https://forthebadge.com)
+[![forthebadge](/badges/powered-by-water.svg)](https://forthebadge.com)
 
 [![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
@@ -162,4 +162,3 @@ FilesOnCloud is open source under the MIT License. See the [LICENSE](LICENSE) fi
 2. [Part 2: The Infrastructure](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-6fff6bbacc3d)
 3. [Part 3: The App](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-aee7c185867b)
 4. [Part 4: The Deployment](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-64af111843b9)
-

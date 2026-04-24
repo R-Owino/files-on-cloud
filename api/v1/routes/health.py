@@ -108,17 +108,17 @@ def check_aws_services():
             check_func(client)
             aws_checks[service_key] = {
                 'status': 'healthy',
-                'message': healthy_msg
+                'message': healthy_msg,
             }
         except ClientError as e:
             aws_checks[service_key] = {
                 'status': 'unhealthy',
-                'message': f'{error_prefix}: {str(e)}'
+                'message': f'{error_prefix}: {str(e)}',
             }
         except Exception as e:
             aws_checks[service_key] = {
                 'status': 'unhealthy',
-                'message': f'{error_prefix} check failed: {str(e)}'
+                'message': f'{error_prefix} check failed: {str(e)}',
             }
 
     try:
@@ -128,10 +128,10 @@ def check_aws_services():
             Config.AWS_COGNITO_USER_POOL_ID,
             'cognito-idp',
             lambda c: c.describe_user_pool(
-                UserPoolId=Config.AWS_COGNITO_USER_POOL_ID
+                UserPoolId=Config.AWS_COGNITO_USER_POOL_ID,
             ),
             'Cognito accessible',
-            'Cognito error'
+            'Cognito error',
         )
 
         # S3 check
@@ -141,7 +141,7 @@ def check_aws_services():
             's3',
             lambda c: c.head_bucket(Bucket=Config.S3_BUCKET_NAME),
             'S3 bucket accessible',
-            'S3 error'
+            'S3 error',
         )
 
         # DynamoDB Documents Table check
@@ -150,10 +150,10 @@ def check_aws_services():
             Config.DOCUMENTS_DYNAMODB_TABLE_NAME,
             'dynamodb',
             lambda c: c.describe_table(
-                TableName=Config.DOCUMENTS_DYNAMODB_TABLE_NAME
+                TableName=Config.DOCUMENTS_DYNAMODB_TABLE_NAME,
             ),
             'Documents table accessible',
-            'DynamoDB documents error'
+            'DynamoDB documents error',
         )
 
         # DynamoDB Userdata Table check
@@ -162,10 +162,10 @@ def check_aws_services():
             Config.USERDATA_DYNAMODB_TABLE_NAME,
             'dynamodb',
             lambda c: c.describe_table(
-                TableName=Config.USERDATA_DYNAMODB_TABLE_NAME
+                TableName=Config.USERDATA_DYNAMODB_TABLE_NAME,
             ),
             'Userdata table accessible',
-            'DynamoDB userdata error'
+            'DynamoDB userdata error',
         )
 
         # CloudFront check
@@ -174,21 +174,21 @@ def check_aws_services():
             Config.CLOUDFRONT_DISTRIBUTION_ID,
             'cloudfront',
             lambda c: c.get_distribution(
-                Id=Config.CLOUDFRONT_DISTRIBUTION_ID
+                Id=Config.CLOUDFRONT_DISTRIBUTION_ID,
             ),
             'CloudFront distribution accessible',
-            'CloudFront error'
+            'CloudFront error',
         )
 
     except NoCredentialsError:
         aws_checks['aws_credentials'] = {
             'status': 'unhealthy',
-            'message': 'AWS credentials not found'
+            'message': 'AWS credentials not found',
         }
     except Exception as e:
         aws_checks['aws_general'] = {
             'status': 'unhealthy',
-            'message': f'AWS check failed: {str(e)}'
+            'message': f'AWS check failed: {str(e)}',
         }
 
     return aws_checks
@@ -219,7 +219,7 @@ def check_system_resources():
             'memory_percent': memory_percent,
             'disk_percent': disk_percent,
             'process_count': process_count,
-            'load_average': load_avg
+            'load_average': load_avg,
         }
 
         # Determine if resources are healthy
@@ -246,7 +246,7 @@ def check_application_health():
             'SECRET_KEY',
             'AWS_REGION',
             'AWS_COGNITO_USER_POOL_ID',
-            'AWS_COGNITO_CLIENT_ID'
+            'AWS_COGNITO_CLIENT_ID',
         ]
 
         missing_vars = [
@@ -258,7 +258,7 @@ def check_application_health():
             'flask_app_running': app_status,
             'missing_critical_vars': missing_vars,
             'python_version': sys.version,
-            'environment': 'test' if 'pytest' in sys.modules else 'production'
+            'environment': 'test' if 'pytest' in sys.modules else 'production',
         }
 
         is_healthy = app_status and not missing_vars
@@ -277,7 +277,7 @@ def health_check():
     health_status = {
         'timestamp': time.time(),
         'status': 'healthy',
-        'checks': {}
+        'checks': {},
     }
 
     overall_healthy = True
@@ -286,7 +286,7 @@ def health_check():
     redis_healthy, redis_message = check_redis_connection()
     health_status['checks']['redis'] = {
         'status': 'healthy' if redis_healthy else 'unhealthy',
-        'message': redis_message
+        'message': redis_message,
     }
     if not redis_healthy:
         overall_healthy = False
@@ -306,7 +306,7 @@ def health_check():
     resources_healthy, resources_info = check_system_resources()
     health_status['checks']['system_resources'] = {
         'status': 'healthy' if resources_healthy else 'unhealthy',
-        'details': resources_info
+        'details': resources_info,
     }
     if not resources_healthy:
         overall_healthy = False
@@ -315,7 +315,7 @@ def health_check():
     app_healthy, app_info = check_application_health()
     health_status['checks']['application'] = {
         'status': 'healthy' if app_healthy else 'unhealthy',
-        'details': app_info
+        'details': app_info,
     }
     if not app_healthy:
         overall_healthy = False
@@ -323,7 +323,7 @@ def health_check():
     # Overall status
     health_status['status'] = 'healthy' if overall_healthy else 'unhealthy'
     health_status['response_time_ms'] = round(
-        (time.time() - start_time) * 1000, 2
+        (time.time() - start_time) * 1000, 2,
     )
 
     # Return appropriate HTTP status code
@@ -346,7 +346,7 @@ def liveness_check():
 
         response_data = {
             'status': 'alive' if app_running else 'dead',
-            'timestamp': time.time()
+            'timestamp': time.time(),
         }
         status_code = 200 if app_running else 503
 
@@ -356,7 +356,7 @@ def liveness_check():
         return jsonify({
             'status': 'dead',
             'error': str(e),
-            'timestamp': time.time()
+            'timestamp': time.time(),
         }), 503
 
 
@@ -378,10 +378,10 @@ def readiness_check():
             try:
                 cognito_client = boto3.client(
                     'cognito-idp',
-                    region_name=Config.AWS_REGION
+                    region_name=Config.AWS_REGION,
                 )
                 cognito_client.describe_user_pool(
-                    UserPoolId=Config.AWS_COGNITO_USER_POOL_ID
+                    UserPoolId=Config.AWS_COGNITO_USER_POOL_ID,
                 )
             except Exception:
                 cognito_healthy = False
@@ -393,7 +393,7 @@ def readiness_check():
             'status': 'ready' if is_ready else 'not_ready',
             'redis': redis_healthy,
             'cognito': cognito_healthy,
-            'timestamp': time.time()
+            'timestamp': time.time(),
         }
         status_code = 200 if is_ready else 503
 
@@ -403,5 +403,5 @@ def readiness_check():
         return jsonify({
             'status': 'not_ready',
             'error': str(e),
-            'timestamp': time.time()
+            'timestamp': time.time(),
         }), 503

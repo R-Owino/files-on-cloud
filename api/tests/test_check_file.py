@@ -36,9 +36,9 @@ def setup_dynamodb():
         TableName=Config.DOCUMENTS_DYNAMODB_TABLE_NAME,
         KeySchema=[{"AttributeName": "file_name", "KeyType": "HASH"}],
         AttributeDefinitions=[
-            {"AttributeName": "file_name", "AttributeType": "S"}
+            {"AttributeName": "file_name", "AttributeType": "S"},
         ],
-        ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5}
+        ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
     )
     return table
 
@@ -113,7 +113,7 @@ def test_check_file_invalid_request(client: FlaskClient):
 @mock_aws
 def test_check_file_credentials_error(
     client: FlaskClient,
-    monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
 ):
     """Test for simulating AWS credentials error"""
 
@@ -124,7 +124,7 @@ def test_check_file_credentials_error(
 
     monkeypatch.setattr(
         "boto3.resource",
-        mock_dynamodb_resource
+        mock_dynamodb_resource,
     )
 
     with client.session_transaction() as session:

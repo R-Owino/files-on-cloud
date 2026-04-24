@@ -50,7 +50,7 @@ def client():
     app.config.update({
         "TESTING": True,
         "SESSION_TYPE": "cachelib",
-        "SESSION_CACHELIB": SimpleCache()
+        "SESSION_CACHELIB": SimpleCache(),
     })
 
     with app.test_client() as client:

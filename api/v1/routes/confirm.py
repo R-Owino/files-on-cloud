@@ -44,7 +44,7 @@ def confirm():
     email = session.get("verification_email")
     if not email:
         logger.warning(
-            "No verification_email in session, redirecting to register"
+            "No verification_email in session, redirecting to register",
         )
         return redirect(url_for("api.register.register"))
 
@@ -58,24 +58,24 @@ def confirm():
         result = confirm_user(email, code)
         if result.get("Success") or "CONFIRMED" in result.get("message", ""):
             logger.info(
-                f"User {email} verified successfully or already confirmed"
+                f"User {email} verified successfully or already confirmed",
             )
             session.pop("verification_email", None)
 
             if request.headers.get('Accept') == 'application/json':
                 return jsonify({
                     "success": result.get("Success", True),
-                    "redirect_url": url_for("api.login.login")
+                    "redirect_url": url_for("api.login.login"),
                 })
             else:
                 return redirect(url_for("api.login.login"))
         else:
             logger.warning(
-                f"Verification failed for {email}: {result.get('message')}"
+                f"Verification failed for {email}: {result.get('message')}",
             )
             return jsonify({
                 "success": False,
-                "message": result.get("message")
+                "message": result.get("message"),
             })
 
     return render_template("confirm.html")

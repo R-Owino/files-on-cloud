@@ -45,7 +45,7 @@ def delete_account():
         if result["Success"]:
             if request.headers.get("Accept") == "application/json":
                 return jsonify({
-                    "message": "Account deleted successfully."
+                    "message": "Account deleted successfully.",
                 }), 200
             return redirect(url_for("api.register.register"))
 

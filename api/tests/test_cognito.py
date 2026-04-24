@@ -29,7 +29,7 @@ def cognito_client():
         client.create_user_pool_client(
             UserPoolId=user_pool_id,
             ClientName="test_client",
-            GenerateSecret=False
+            GenerateSecret=False,
         )
         client_id = client.list_user_pool_clients(
             UserPoolId=user_pool_id,
@@ -44,7 +44,7 @@ def test_register_user(cognito_client):
     response = register_user(
         "testuser@example.com",
         "testuser",
-        "SecurePass123!"
+        "SecurePass123!",
     )
     assert response["Success"] is True
 
@@ -56,12 +56,12 @@ def test_register_user_existing(cognito_client):
         ClientId=Config.AWS_COGNITO_CLIENT_ID,
         Username="testuser@example.com",
         Password="SecurePass123!",
-        UserAttributes=[{"Name": "email", "Value": "testuser@example.com"}]
+        UserAttributes=[{"Name": "email", "Value": "testuser@example.com"}],
     )
     response = register_user(
         "testuser@example.com",
         "testuser",
-        "SecurePass123!"
+        "SecurePass123!",
     )
     assert response["Success"] is False
     assert "message" in response
@@ -93,7 +93,7 @@ def test_confirm_user(cognito_client):
             cognito_client.list_user_pools(MaxResults=1)
             ["UserPools"][0]["Id"]
         ),
-        Username="testuser@example.com"
+        Username="testuser@example.com",
     )
     response = confirm_user("testuser@example.com", "123456")
     assert response["Success"] is True
@@ -124,10 +124,10 @@ def test_confirm_user_expired_code(cognito_client):
             {
                 "Error": {
                     "Code": "ExpiredCodeException",
-                    "Message": "Confirmation code has expired"
-                }
+                    "Message": "Confirmation code has expired",
+                },
             },
-            "confirm_sign_up"
+            "confirm_sign_up",
         )
 
         response = confirm_user("testuser@example.com", "123456")
@@ -143,7 +143,7 @@ def test_resend_verification_code(cognito_client):
 
     # mock successful response
     with patch(
-        "v1.cognito.cognito_client.resend_confirmation_code"
+        "v1.cognito.cognito_client.resend_confirmation_code",
     ) as mock_resend:
         mock_resend.return_value = {}
 
@@ -158,16 +158,16 @@ def test_resend_verification_code_invalid_user(cognito_client):
     """Test resending verification code for a non-existent user"""
 
     with patch(
-        "v1.cognito.cognito_client.resend_confirmation_code"
+        "v1.cognito.cognito_client.resend_confirmation_code",
     ) as mock_resend:
         mock_resend.side_effect = ClientError(
             {
                 "Error": {
                     "Code": "UserNotFoundException",
-                    "Message": "User does not exist"
-                }
+                    "Message": "User does not exist",
+                },
             },
-            "resend_verification_code"
+            "resend_verification_code",
         )
 
         # try resending code to a non-existent user
@@ -198,7 +198,7 @@ def test_login_user(cognito_client):
     )
     cognito_client.admin_confirm_sign_up(
         UserPoolId=user_pool_id,
-        Username="testuser@example.com"
+        Username="testuser@example.com",
     )
 
     response = login_user("testuser@example.com", "SecurePass123!")
@@ -244,10 +244,10 @@ def test_login_user_expired_tokens(cognito_client):
             {
                 "Error": {
                     "Code": "NotAuthorizedException",
-                    "Message": "Tokens have expired"
-                }
+                    "Message": "Tokens have expired",
+                },
             },
-            "initiate_auth"
+            "initiate_auth",
         )
 
         response = login_user("testuser@example.com", "SecurePass123!")
@@ -270,10 +270,10 @@ def test_login_user_unexpected_error(cognito_client):
             {
                 "Error": {
                     "Code": "SomeOtherError",
-                    "Message": "An unexpected error occurred"
-                }
+                    "Message": "An unexpected error occurred",
+                },
             },
-            "initiate_auth"
+            "initiate_auth",
         )
 
         response = login_user("testuser@example.com", "SecurePass123!")
@@ -288,7 +288,7 @@ def test_email_exists_true(cognito_client):
         ClientId=Config.AWS_COGNITO_CLIENT_ID,
         Username="testuser@example.com",
         Password="SecurePass123!",
-        UserAttributes=[{"Name": "email", "Value": "testuser@example.com"}]
+        UserAttributes=[{"Name": "email", "Value": "testuser@example.com"}],
     )
     assert email_exists("testuser@example.com") is True
 
@@ -307,10 +307,10 @@ def test_email_exists_error(mock_list_users, cognito_client):
         {
             "Error": {
                 "Code": "InternalError",
-                "Message": "Internal server error"
-            }
+                "Message": "Internal server error",
+            },
         },
-        "list_users"
+        "list_users",
     )
 
     assert email_exists("testuser@example.com") is False
@@ -327,9 +327,9 @@ def test_delete_user_success(cognito_client):
         TableName=Config.USERDATA_DYNAMODB_TABLE_NAME,
         KeySchema=[{"AttributeName": "UserId", "KeyType": "HASH"}],
         AttributeDefinitions=[
-            {"AttributeName": "UserId", "AttributeType": "S"}
+            {"AttributeName": "UserId", "AttributeType": "S"},
             ],
-        ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1}
+        ProvisionedThroughput={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1},
     )
     table.put_item(Item={"UserId": "testuser@example.com"})
 
@@ -351,7 +351,7 @@ def test_delete_user_invalid_access_token(mock_delete_user, cognito_client):
             "Error": {
                 "Code": "InvalidParameterException",
                 "Message": "Invalid access token",
-            }
+            },
         },
         "delete_user",
     )
@@ -369,8 +369,8 @@ def test_delete_user_cognito_internal_error(mock_delete_user, cognito_client):
         {
             "Error": {
                 "Code": "InternalError",
-                "Message": "Internal server error"
-            }
+                "Message": "Internal server error",
+            },
         },
         "delete_user",
     )
@@ -386,7 +386,7 @@ def test_delete_user_cognito_internal_error(mock_delete_user, cognito_client):
 def test_delete_user_dynamodb_not_found(
     mock_boto3_resource,
     mock_delete_user,
-    cognito_client
+    cognito_client,
 ):
     """Test deletion when the user is not found in DynamoDB."""
     mock_delete_user.return_value = {}
@@ -412,8 +412,8 @@ def test_delete_user_too_many_requests(mock_delete_user, cognito_client):
         {
             "Error": {
                 "Code": "TooManyRequestsException",
-                "Message": "Rate limit exceeded"
-            }
+                "Message": "Rate limit exceeded",
+            },
         },
         "delete_user",
     )
@@ -431,8 +431,8 @@ def test_delete_user_unauthorized(mock_delete_user, cognito_client):
         {
             "Error": {
                 "Code": "NotAuthorizedException",
-                "Message": "Unauthorized"
-            }
+                "Message": "Unauthorized",
+            },
         },
         "delete_user",
     )
@@ -450,8 +450,8 @@ def test_delete_user_not_found(mock_delete_user, cognito_client):
         {
             "Error": {
                 "Code": "UserNotFoundException",
-                "Message": "User not found"
-            }
+                "Message": "User not found",
+            },
         },
         "delete_user",
     )

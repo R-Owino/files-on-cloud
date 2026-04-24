@@ -1,10 +1,9 @@
 from flask import (Blueprint,
                    render_template,
                    request,
-                   redirect,
                    url_for,
                    session,
-                   jsonify
+                   jsonify,
                    )
 from v1.cognito import register_user, email_exists
 import logging
@@ -46,7 +45,7 @@ def register():
         try:
             if email_exists(email):
                 return jsonify({
-                    "message": "User with email already exists."
+                    "message": "User with email already exists.",
                 }), 409
 
             result = register_user(email, username, password)
@@ -56,28 +55,28 @@ def register():
                     session.modified = True
                     logger.info(
                         f"Session stored successfully:"
-                        f"{session.get('verification_email')}"
+                        f"{session.get('verification_email')}",
                     )
 
                     return jsonify({
                         "success": True,
-                        "redirect_url": url_for("api.confirm.confirm")
+                        "redirect_url": url_for("api.confirm.confirm"),
                     }), 200
                 except Exception as session_error:
                     logger.error(f"Session error: {session_error}")
                     return jsonify({
-                        "message": "Session error. Please try again."
+                        "message": "Session error. Please try again.",
                     }), 500
             else:
                 return jsonify({
                     "message": (
                         "Registration failed. Please check your inputs."
-                    )
+                    ),
                 }), 400
         except Exception as e:
             logger.error(f"Registration error: {e}")
             return jsonify({
-                "message": "An error occurred. Please try again."
+                "message": "An error occurred. Please try again.",
             }), 500
 
     return render_template("register.html")

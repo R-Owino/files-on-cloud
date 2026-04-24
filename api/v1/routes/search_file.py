@@ -1,8 +1,9 @@
 import requests
 import logging
-from . import file_metadata_bp
+from flask import Blueprint, jsonify, request
 from v1.config import Config
-from flask import jsonify, request
+
+search_file_bp = Blueprint("search_file", __name__)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 AWS_API_GATEWAY_FETCH_METADATA_URL = Config.AWS_API_GATEWAY_FETCH_METADATA_URL
 
 
-@file_metadata_bp.route("/search-files", methods=["GET"])
+@search_file_bp.route("/search-files", methods=["GET"])
 def search_files():
     """
     search for files by name
@@ -30,14 +31,14 @@ def search_files():
     search_term = request.args.get('search', '')
     if not search_term:
         return jsonify({
-            "error": "Search term is required"
+            "error": "Search term is required",
         }), 400
 
     try:
         if not AWS_API_GATEWAY_FETCH_METADATA_URL:
             logger.error("Missing API Gateway URL configuration.")
             return jsonify(
-                {"error": "Server misconfiguration: missing API URL."}
+                {"error": "Server misconfiguration: missing API URL."},
             ), 500
 
         headers = {}
@@ -49,14 +50,14 @@ def search_files():
         response = requests.get(
             AWS_API_GATEWAY_FETCH_METADATA_URL,
             params=params,
-            headers=headers
+            headers=headers,
         )
 
         if response.status_code == 200:
             return jsonify(response.json()), 200
         else:
             return jsonify({
-                "error": f"failed to search files: {response.text}"
+                "error": f"failed to search files: {response.text}",
             }), response.status_code
     except requests.RequestException as e:
         return jsonify({"error": f"Network error: {str(e)}"}), 500

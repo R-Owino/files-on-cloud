@@ -6,7 +6,7 @@ from typing import Optional, Dict
 from botocore.exceptions import (
     ClientError,
     NoCredentialsError,
-    PartialCredentialsError
+    PartialCredentialsError,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,11 +32,11 @@ class Config:
             session = boto3.session.Session()  # type: ignore[attr-defined]
             client = session.client(
                 service_name='secretsmanager',
-                region_name=region_name
+                region_name=region_name,
             )
 
             get_secret_value_response = client.get_secret_value(
-                SecretId=secret_name
+                SecretId=secret_name,
             )
             secret = get_secret_value_response['SecretString']
             cls._secrets_cache = json.loads(secret)
@@ -64,7 +64,7 @@ class Config:
             session = boto3.session.Session()  # type: ignore[attr-defined]
             client = session.client(
                 service_name='ssm',
-                region_name=region_name
+                region_name=region_name,
             )
 
             # Get all parameters under the base path
@@ -74,7 +74,7 @@ class Config:
             for page in paginator.paginate(
                 Path=base_path,
                 Recursive=True,
-                WithDecryption=False
+                WithDecryption=False,
             ):
                 for param in page['Parameters']:
                     # Extract just the parameter name without the path
@@ -84,7 +84,7 @@ class Config:
             cls._parameters_cache = parameters
             logger.info(
                 f"Successfully loaded {len(parameters)} parameters "
-                f"from Parameter Store"
+                f"from Parameter Store",
             )
             return cls._parameters_cache
 
@@ -113,7 +113,7 @@ class Config:
             ClientError,
             NoCredentialsError,
             PartialCredentialsError,
-            json.JSONDecodeError
+            json.JSONDecodeError,
         ) as e:
             logger.warning(f"Could not load secrets for {key}: {e}")
 
@@ -177,49 +177,49 @@ class Config:
     def initialize(cls):
         """Initialize all configuration values"""
         cls.SECRET_KEY = cls._get_config_value(
-            "SECRET_KEY", "xyz-xyz-xyz"
+            "SECRET_KEY", "xyz-xyz-xyz",
         )
         cls.AWS_REGION = cls._get_config_value(
-            "AWS_REGION", "us-west-2"
+            "AWS_REGION", "us-west-2",
         )
         cls.AWS_COGNITO_USER_POOL_ID = cls._get_config_value(
-            "AWS_COGNITO_USER_POOL_ID"
+            "AWS_COGNITO_USER_POOL_ID",
         )
         cls.AWS_COGNITO_CLIENT_ID = cls._get_config_value(
-            "AWS_COGNITO_CLIENT_ID"
+            "AWS_COGNITO_CLIENT_ID",
         )
         cls.AWS_API_GATEWAY_FETCH_METADATA_URL = cls._get_config_value(
-            "AWS_API_GATEWAY_FETCH_METADATA_URL"
+            "AWS_API_GATEWAY_FETCH_METADATA_URL",
         )
         cls.AWS_API_GATEWAY_DELETE_URL = cls._get_config_value(
-            "AWS_API_GATEWAY_DELETE_URL"
+            "AWS_API_GATEWAY_DELETE_URL",
         )
         cls.S3_BUCKET_NAME = cls._get_config_value(
-            "S3_BUCKET_NAME"
+            "S3_BUCKET_NAME",
         )
         cls.DOCUMENTS_DYNAMODB_TABLE_NAME = cls._get_config_value(
-            "DOCUMENTS_DYNAMODB_TABLE_NAME"
+            "DOCUMENTS_DYNAMODB_TABLE_NAME",
         )
         cls.USERDATA_DYNAMODB_TABLE_NAME = cls._get_config_value(
-            "USERDATA_DYNAMODB_TABLE_NAME"
+            "USERDATA_DYNAMODB_TABLE_NAME",
         )
         cls.CLOUDFRONT_DOMAIN = cls._get_config_value(
-            "CLOUDFRONT_DOMAIN"
+            "CLOUDFRONT_DOMAIN",
         )
         cls.CLOUDFRONT_PUBLIC_KEY_ID = cls._get_config_value(
-            "CLOUDFRONT_PUBLIC_KEY_ID"
+            "CLOUDFRONT_PUBLIC_KEY_ID",
         )
         cls.CLOUDFRONT_DISTRIBUTION_ID = cls._get_config_value(
-            "CLOUDFRONT_DISTRIBUTION_ID"
+            "CLOUDFRONT_DISTRIBUTION_ID",
         )
         cls.REDIS_HOST = cls._get_config_value(
-            "REDIS_HOST", "redis"
+            "REDIS_HOST", "redis",
         )
         cls.REDIS_ECS = cls._get_config_value(
-            "REDIS_ECS", "localhost"
+            "REDIS_ECS", "localhost",
         )
         cls.REDIS_PASSWORD = cls._get_config_value(
-            "REDIS_PASSWORD"
+            "REDIS_PASSWORD",
         )
         cls.REDIS_PORT = int(cls._get_config_value("REDIS_PORT", "6379"))
         cls.REDIS_URL = cls._get_config_value("REDIS_URL")
@@ -230,7 +230,7 @@ class Config:
         else:
             host_part = redis_url.replace('redis://', '')
         logger.info(
-            f"Redis will connect to: redis://[credentials]@{host_part}"
+            f"Redis will connect to: redis://[credentials]@{host_part}",
         )
 
 

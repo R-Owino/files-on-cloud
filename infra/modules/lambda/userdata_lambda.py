@@ -34,9 +34,9 @@ def lambda_handler(event, context):
                 'UserId': email,
                 'Username': username,
                 'CreatedAt': curr_time,
-                'LastLogin': curr_time
+                'LastLogin': curr_time,
             },
-            ConditionExpression='attribute_not_exists(UserId)'
+            ConditionExpression='attribute_not_exists(UserId)',
         )
         logger.info(f"User data saved: {response}")
         return event
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
             return {
                 'statusCode': 400,
-                'body': json.dumps('User already exists')
+                'body': json.dumps('User already exists'),
             }
         else:
             logger.error(f"Error saving user data: {e}")

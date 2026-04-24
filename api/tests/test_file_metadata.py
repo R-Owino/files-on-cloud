@@ -22,7 +22,7 @@ def mock_redis():
     redis_mock = MagicMock()
     with patch(
         'v1.routes.file_metadata.get_redis_client',
-        return_value=redis_mock
+        return_value=redis_mock,
     ):
         yield redis_mock
 
@@ -30,7 +30,7 @@ def mock_redis():
 def test_file_metadata_missing_config(client):
     """Test metadata retrieval fails when config is missing"""
     with patch(
-        'v1.routes.file_metadata.AWS_API_GATEWAY_FETCH_METADATA_URL', ''
+        'v1.routes.file_metadata.AWS_API_GATEWAY_FETCH_METADATA_URL', '',
     ):
         response = client.get("/file-metadata")
         assert response.status_code == 500
@@ -46,7 +46,7 @@ def test_file_metadata_no_cache(mock_get, client, mock_redis):
 
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {
-        "files": ["file1.txt", "file2.pdf"]
+        "files": ["file1.txt", "file2.pdf"],
     }
 
     response = client.get("/file-metadata")
@@ -84,7 +84,7 @@ def test_file_metadata_authenticated_user(mock_get, client, mock_redis):
     auth_header = "Bearer test.jwt.token"
     response = client.get(
         "/file-metadata",
-        headers={"Authorization": auth_header}
+        headers={"Authorization": auth_header},
     )
 
     assert response.status_code == 200
@@ -164,7 +164,7 @@ def test_file_metadata_timeout(mock_get, client, mock_redis):
     mock_get.return_value.status_code = 200
     mock_get.return_value.json.return_value = {"files": []}
 
-    response = client.get("/file-metadata")
+    client.get("/file-metadata")
 
     mock_get.assert_called_once()
     args, kwargs = mock_get.call_args
@@ -175,7 +175,7 @@ def test_invalidate_cache_success(client, mock_redis):
     """Test successful cache invalidation"""
     mock_redis.keys.return_value = [
         "file_metadata:public",
-        "file_metadata:auth:abc123"
+        "file_metadata:auth:abc123",
     ]
     mock_redis.delete.return_value = 2
 

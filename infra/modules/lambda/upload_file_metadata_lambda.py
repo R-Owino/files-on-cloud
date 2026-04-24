@@ -34,7 +34,7 @@ def lambda_handler(event, context):
                 table = dynamodb.Table(TABLE_NAME)
                 response = table.scan(
                     FilterExpression='file_name = :filename',
-                    ExpressionAttributeValues={':filename': file_name}
+                    ExpressionAttributeValues={':filename': file_name},
                 )
 
                 # if it exists, update the existing entry
@@ -58,8 +58,8 @@ def lambda_handler(event, context):
                             ':new_timestamp': (
                                 datetime.now(timezone.utc).isoformat()
                             ),
-                            ':new_size': size_bytes
-                        }
+                            ':new_size': size_bytes,
+                        },
                     )
                     logger.info(f"Updated metadata for {file_name}")
                 else:
@@ -75,17 +75,17 @@ def lambda_handler(event, context):
                         'upload_timestamp': (
                             datetime.now(timezone.utc).isoformat()
                         ),
-                        'size_bytes': size_bytes
+                        'size_bytes': size_bytes,
                     }
 
                     table.put_item(Item=file_metadata)
                     logger.info(
-                        f"Metadata for {file_name} stored successfully"
+                        f"Metadata for {file_name} stored successfully",
                     )
 
         return {
             'statusCode': 200,
-            'body': json.dumps("File metadata stored successfully")
+            'body': json.dumps("File metadata stored successfully"),
         }
     except Exception as e:
         logger.error(f"Error processing event: {str(e)}")

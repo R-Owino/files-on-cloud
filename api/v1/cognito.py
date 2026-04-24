@@ -17,7 +17,7 @@ cognito_client = boto3.client("cognito-idp",
 def register_user(
     email: str,
     username: str,
-    password: str
+    password: str,
 ) -> Dict[str, bool | str]:
     """
     Registers a new user in the AWS Cognito user pool
@@ -41,14 +41,14 @@ def register_user(
             Password=password,
             UserAttributes=[
                 {"Name": "email", "Value": email},
-                {"Name": "preferred_username", "Value": username}
-            ]
+                {"Name": "preferred_username", "Value": username},
+            ],
         )
         return {"Success": True}
     except ClientError as e:
         return {
             "Success": False,
-            "message": e.response["Error"]["Message"]
+            "message": e.response["Error"]["Message"],
         }
 
 
@@ -72,7 +72,7 @@ def confirm_user(email: str, code: str) -> Dict[str, bool | str]:
         cognito_client.confirm_sign_up(
             ClientId=Config.AWS_COGNITO_CLIENT_ID,
             Username=email,
-            ConfirmationCode=code
+            ConfirmationCode=code,
         )
         logger.info("User confirmation successful")
         return {"Success": True}
@@ -99,7 +99,7 @@ def resend_verification_code(email: str) -> Dict[str, bool | str]:
     try:
         cognito_client.resend_confirmation_code(
             ClientId=Config.AWS_COGNITO_CLIENT_ID,
-            Username=email
+            Username=email,
         )
         return {"Success": True}
     except ClientError as e:
@@ -108,7 +108,7 @@ def resend_verification_code(email: str) -> Dict[str, bool | str]:
 
 def login_user(
     email: str,
-    password: str
+    password: str,
 ) -> Dict[str, Union[bool, str, Dict[str, str]]]:
     """
     Authenticates a user and retrieves authentication tokens from AWS Cognito
@@ -127,9 +127,9 @@ def login_user(
             AuthParameters={
                 "USERNAME": email,
                 "PASSWORD": password,
-                "SCOPE": "aws.cognito.signin.user.admin"
+                "SCOPE": "aws.cognito.signin.user.admin",
             },
-            ClientId=Config.AWS_COGNITO_CLIENT_ID
+            ClientId=Config.AWS_COGNITO_CLIENT_ID,
         )
         login_result = response["AuthenticationResult"]
         return {
@@ -137,15 +137,15 @@ def login_user(
             "tokens": {
                 "id_token": login_result["IdToken"],
                 "access_token": login_result["AccessToken"],
-                "refresh_token": login_result["RefreshToken"]
-            }
+                "refresh_token": login_result["RefreshToken"],
+            },
         }
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         if error_code == "UserNotFoundException":
             return {
                 "Success": False,
-                "message": "User not found. Please check your credentials."
+                "message": "User not found. Please check your credentials.",
             }
         elif error_code == "NotAuthorizedException":
             return {"Success": False, "message": "Invalid credentials."}
@@ -154,7 +154,7 @@ def login_user(
                 "Success": False,
                 "message": (
                     f"An error occurred: {e.response['Error']['Message']}"
-                )
+                ),
             }
 
 
@@ -172,7 +172,7 @@ def email_exists(email: str) -> bool:
     try:
         response = cognito_client.list_users(
             UserPoolId=Config.AWS_COGNITO_USER_POOL_ID,
-            Filter=f'email = "{email}"'
+            Filter=f'email = "{email}"',
         )
         return len(response['Users']) > 0
     except ClientError as e:
@@ -196,7 +196,7 @@ def delete_user(access_token: str) -> Dict[str, bool | str]:
     try:
         # delete from cognito userpool
         cognito_client.delete_user(
-            AccessToken=access_token
+            AccessToken=access_token,
         )
 
         # delete from DynamoDB
@@ -206,13 +206,13 @@ def delete_user(access_token: str) -> Dict[str, bool | str]:
 
         response = table.delete_item(
             Key={"UserId": email},
-            ReturnValues="ALL_OLD"
+            ReturnValues="ALL_OLD",
         )
 
         if "Attributes" not in response:
             return {
                 "Success": False,
-                "message": "User not found in database"
+                "message": "User not found in database",
             }
 
         session.clear()
@@ -222,5 +222,5 @@ def delete_user(access_token: str) -> Dict[str, bool | str]:
         logger.error(f"Failed to delete user: {e}")
         return {
             "Success": False,
-            "message": e.response["Error"]["Message"]
+            "message": e.response["Error"]["Message"],
         }

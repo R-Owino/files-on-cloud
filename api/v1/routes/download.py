@@ -46,17 +46,17 @@ def load_private_key():
             private_key = serialization.load_pem_private_key(
                 key_file.read(),
                 password=None,
-                backend=default_backend
+                backend=default_backend,
             )
             test_message = b"test"
             signature = (
                 private_key.sign(
-                    test_message, padding.PKCS1v15(), hashes.SHA1()
+                    test_message, padding.PKCS1v15(), hashes.SHA1(),
                 )
             )
             logger.info(
                 "Private key loaded and tested successfully, "
-                f"signature length: {len(signature)}"
+                f"signature length: {len(signature)}",
             )
             return private_key
 
@@ -104,7 +104,7 @@ def wait(file_key, max_retries=5, delay=3):
         try:
             s3.head_object(
                 Bucket=BUCKET_NAME,
-                Key=file_key
+                Key=file_key,
             )
             return True
         except ClientError as e:
@@ -137,7 +137,7 @@ def generate_download_url(file_key):
         try:
             s3.head_object(
                 Bucket=BUCKET_NAME,
-                Key=file_key
+                Key=file_key,
             )
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
@@ -169,15 +169,15 @@ def generate_download_url(file_key):
                         "Resource": cloudfront_url,
                         "Condition": {
                             "DateLessThan": {"AWS:EpochTime": int(expires.timestamp())}  # noqa E501
-                        }
-                    }
-                ]
+                        },
+                    },
+                ],
             }
 
             # Generate signed URL using the custom policy
             signed_url = cloudfront_signer.generate_presigned_url(
                 cloudfront_url,
-                policy=json.dumps(policy)
+                policy=json.dumps(policy),
             )
 
             logger.info(f"CloudFront URL: {cloudfront_url}")
@@ -196,9 +196,9 @@ def generate_download_url(file_key):
                         "Key": file_key,
                         "ResponseContentDisposition": (
                             f'attachment; filename="{file_name}"'
-                        )
+                        ),
                     },
-                    ExpiresIn=3600
+                    ExpiresIn=3600,
                 )
                 logger.warning("Falling back to S3 pre-signed URL")
                 return presigned_url, file_name, None, 200
@@ -241,7 +241,7 @@ def download_file():
         if not file_key:
             logger.info("Missing file key")
             return jsonify({
-                "error": "Missing required parameter: file_key"
+                "error": "Missing required parameter: file_key",
             }), 400
 
         signed_url, file_name, error, status_code = (
@@ -253,7 +253,7 @@ def download_file():
 
         return jsonify({
             "presigned_url": signed_url,
-            "file_name": file_name
+            "file_name": file_name,
         }), 200
 
     except Exception as e:
@@ -289,7 +289,7 @@ def proxy_download(file_key):
     if error:
         logger.error(f"Failed to generate signed URL: {error}")
         return jsonify({
-            "error": error
+            "error": error,
         }), status_code
 
     try:
@@ -301,7 +301,7 @@ def proxy_download(file_key):
                 "error": (
                     f"Failed to fetch file"
                     f"(Status: {response.status_code})"
-                )
+                ),
             }), response.status_code
 
         return Response(
@@ -310,7 +310,7 @@ def proxy_download(file_key):
             headers={
                 "Content-Disposition": f'attachment; filename="{file_name}"',
                 "Content-Length": response.headers.get("Content-Length"),
-            }
+            },
         )
     except requests.RequestException as e:
         logger.error(f"Request error when fetching file: {str(e)}")

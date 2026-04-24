@@ -31,7 +31,7 @@ def main():
     username = session.get("email", None) if is_logged_in else None
 
     logger.info(
-        f"Main page accessed - Logged in: {is_logged_in}, User: {username}"
+        f"Main page accessed - Logged in: {is_logged_in}, User: {username}",
     )
 
     return render_template("main.html",

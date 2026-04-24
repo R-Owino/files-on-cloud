@@ -3,7 +3,7 @@ from flask import (Blueprint,
                    request,
                    redirect,
                    url_for,
-                   session
+                   session,
                    )
 from v1.cognito import login_user
 import logging

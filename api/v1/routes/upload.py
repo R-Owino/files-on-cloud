@@ -2,16 +2,19 @@ import os
 import boto3
 from time import time
 import logging
-from . import upload_bp
 import v1.config
+from flask import Blueprint, request, jsonify, session
 from flask_cors import cross_origin
-from flask import request, jsonify, session
+
 from werkzeug.utils import secure_filename
 from botocore.client import Config
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+upload_bp = Blueprint("upload", __name__)
 
 # map filetypes to folders in S3
 FILE_TYPE_MAP = {
@@ -27,7 +30,7 @@ FILE_TYPE_MAP = {
     "disc-files": ["iso"],
     "log-files": ["log"],
     "config-files": ["conf", "ini", "yaml", "yml"],
-    "other": []
+    "other": [],
 }
 
 
@@ -80,18 +83,18 @@ def initialize_multipart_upload():
 
     if not file_name or not content_type:
         return jsonify({
-            "error": "Invalid request"
+            "error": "Invalid request",
         }), 400
 
     if not request.is_json:
         return jsonify({
-            "error": "Content-Type must be application/json"
+            "error": "Content-Type must be application/json",
         }), 415
 
     # validate filename
     if ".." in file_name or file_name.startswith("/"):
         return jsonify({
-            "error": "Invalid filename"
+            "error": "Invalid filename",
         }), 400
 
     # validate file type
@@ -100,14 +103,14 @@ def initialize_multipart_upload():
         ext for exts in FILE_TYPE_MAP.values() for ext in exts
     ]:
         return jsonify({
-            "error": "Unsupported file type"
+            "error": "Unsupported file type",
         }), 400
 
     try:
         s3 = boto3.client(
             "s3",
             region_name=v1.config.Config.AWS_REGION,
-            config=Config(s3={'use_accelerate_endpoint': True})
+            config=Config(s3={'use_accelerate_endpoint': True}),
         )
 
         folder = get_folder(file_extension)
@@ -116,17 +119,17 @@ def initialize_multipart_upload():
         response = s3.create_multipart_upload(
             Bucket=v1.config.Config.S3_BUCKET_NAME,
             Key=file_key,
-            ContentType=content_type
+            ContentType=content_type,
         )
 
         return jsonify({
             "uploadId": response["UploadId"],
-            "key": file_key
+            "key": file_key,
         })
     except (NoCredentialsError, PartialCredentialsError) as e:
         logger.error(f"Error initializing multipart upload: {str(e)}")
         return jsonify({
-            "error": str(e)
+            "error": str(e),
         }), 500
 
 
@@ -184,7 +187,7 @@ def get_chunk_upload_url():
                 "PartNumber": part_number,
             },
             ExpiresIn=3600,
-            HttpMethod="PUT"
+            HttpMethod="PUT",
         )
 
         return jsonify({"url": url})
@@ -228,7 +231,7 @@ def complete_multipart_upload():
             Bucket=v1.config.Config.S3_BUCKET_NAME,
             Key=file_key,
             UploadId=upload_id,
-            MultipartUpload={"Parts": parts}
+            MultipartUpload={"Parts": parts},
         )
 
         return jsonify({"message": "Upload completed successfully"})
@@ -263,13 +266,13 @@ def invalidate_cloudfront_path(file_key: str) -> bool:
             InvalidationBatch={
                 "Paths": {
                     "Quantity": 1,
-                    "Items": [f'/{file_key}']
+                    "Items": [f'/{file_key}'],
                 },
-                "CallerReference": str(int(time()))
-            }
+                "CallerReference": str(int(time())),
+            },
         )
         logger.info(
-            f"Invalidation created: {invalidation['Invalidation']['Id']}"
+            f"Invalidation created: {invalidation['Invalidation']['Id']}",
         )
         return True
     except Exception as e:

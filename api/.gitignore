@@ -1,5 +1,5 @@
 **/__pycache__
 **/.pytest_cache
 
-# CloudFront signing key - injected by CI from secrets, never committed
+# CloudFront signing key
 v1/routes/private_key.pem

@@ -25,7 +25,7 @@ def mock_s3():
         s3 = boto3.client("s3", region_name="us-west-2")
         s3.create_bucket(
             Bucket=Config.S3_BUCKET_NAME,
-            CreateBucketConfiguration={"LocationConstraint": "us-west-2"}
+            CreateBucketConfiguration={"LocationConstraint": "us-west-2"},
         )
         yield s3
 
@@ -59,21 +59,21 @@ def test_download_file_success_with_cloudfront(client: FlaskClient, mock_s3):
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head_object:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_generate_url:
                 mock_generate_url.return_value = (
                     "https://cloudfront.example.com/signed-url"
                 )
 
                 response = client.get(
-                    "/download?file_key=documents/testfile.txt"
+                    "/download?file_key=documents/testfile.txt",
                 )
                 assert response.status_code == 200
                 data = response.get_json()
@@ -90,7 +90,7 @@ def test_download_file_success_with_cloudfront(client: FlaskClient, mock_s3):
                 )
                 mock_generate_url.assert_called_with(
                     expected_url,
-                    policy=ANY  # JSON string policy
+                    policy=ANY,  # JSON string policy
                 )
 
 
@@ -104,27 +104,27 @@ def test_download_file_fallback_to_s3_presigned_url(
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head_object:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_cf_url:
                 mock_cf_url.side_effect = Exception(
-                    "CloudFront signing failed"
+                    "CloudFront signing failed",
                 )
                 with patch(
-                    "v1.routes.download.s3.generate_presigned_url"
+                    "v1.routes.download.s3.generate_presigned_url",
                 ) as mock_s3_url:
                     mock_s3_url.return_value = (
                         "https://s3.amazonaws.com/bucket/signed-url"
                     )
 
                     response = client.get(
-                        "/download?file_key=documents/testfile.txt"
+                        "/download?file_key=documents/testfile.txt",
                     )
                     assert response.status_code == 200
                     data = response.get_json()
@@ -142,11 +142,11 @@ def test_download_file_not_found(client: FlaskClient, mock_s3):
     with patch("v1.routes.download.s3.head_object") as mock_head_object:
         mock_head_object.side_effect = ClientError(
             {"Error": {"Code": "404", "Message": "Not Found"}},
-            "HeadObject"
+            "HeadObject",
         )
 
         response = client.get(
-            "/download?file_key=documents/missingfile.txt"
+            "/download?file_key=documents/missingfile.txt",
         )
         assert response.status_code == 404
         assert response.get_json()["error"] == "File not found"
@@ -160,11 +160,11 @@ def test_download_file_access_denied(client: FlaskClient, mock_s3):
     with patch("v1.routes.download.s3.head_object") as mock_head_object:
         mock_head_object.side_effect = ClientError(
             {"Error": {"Code": "403", "Message": "Access Denied"}},
-            "HeadObject"
+            "HeadObject",
         )
 
         response = client.get(
-            "/download?file_key=documents/testfile.txt"
+            "/download?file_key=documents/testfile.txt",
         )
         assert response.status_code == 403
         assert response.get_json()["error"] == "Access denied"
@@ -180,15 +180,15 @@ def test_download_file_wait_for_file_availability(
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head_object:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = False
 
             response = client.get(
-                "/download?file_key=documents/testfile.txt"
+                "/download?file_key=documents/testfile.txt",
             )
             assert response.status_code == 404
             assert response.get_json()["error"] == (
@@ -206,7 +206,7 @@ def test_download_file_unexpected_error(client: FlaskClient):
         mock_head_object.side_effect = Exception("Unexpected error")
 
         response = client.get(
-            "/download?file_key=documents/testfile.txt"
+            "/download?file_key=documents/testfile.txt",
         )
         assert response.status_code == 500
         assert response.get_json()["error"] == "An unexpected error occured"
@@ -227,21 +227,21 @@ def test_download_file_special_characters(client: FlaskClient, mock_s3):
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key=special_key,
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_url:
                 mock_url.return_value = (
                     "https://cloudfront.example.com/signed-url"
                 )
 
                 response = client.get(
-                    f"/download?file_key={encoded_key}"
+                    f"/download?file_key={encoded_key}",
                 )
                 assert response.status_code == 200
                 assert response.get_json()["file_name"] == (
@@ -260,14 +260,14 @@ def test_download_file_large_timeout(client: FlaskClient, mock_s3):
                 "Error":
                 {
                     "Code": "RequestTimeout",
-                    "Message": "Request timed out"
-                }
+                    "Message": "Request timed out",
+                },
             },
-            "HeadObject"
+            "HeadObject",
         )
 
         response = client.get(
-            "/download?file_key=documents/testfile.txt"
+            "/download?file_key=documents/testfile.txt",
         )
         assert response.status_code == 500
         assert "error" in response.get_json()
@@ -288,14 +288,14 @@ def test_proxy_download_endpoint_success(client: FlaskClient, mock_s3):
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_url:
                 mock_url.return_value = (
                     "https://cloudfront.example.com/signed-url"
@@ -305,13 +305,13 @@ def test_proxy_download_endpoint_success(client: FlaskClient, mock_s3):
                     mock_response.status_code = 200
                     mock_response.headers = {
                         "Content-Type": "text/plain",
-                        "Content-Length": "12"
+                        "Content-Length": "12",
                     }
                     mock_response.iter_content.return_value = [b"test content"]
                     mock_request.return_value = mock_response
 
                     response = client.get(
-                        "/download/documents/testfile.txt"
+                        "/download/documents/testfile.txt",
                     )
                     assert response.status_code == 200
                     assert response.headers["Content-Disposition"] == (
@@ -329,7 +329,7 @@ def test_proxy_download_endpoint_remote_failure(client: FlaskClient, mock_s3):
             "https://cloudfront.example.com/signed-url",
             "testfile.txt",
             None,
-            200
+            200,
         )
         with patch("v1.routes.download.requests.get") as mock_request:
             mock_response = MagicMock()
@@ -337,7 +337,7 @@ def test_proxy_download_endpoint_remote_failure(client: FlaskClient, mock_s3):
             mock_request.return_value = mock_response
 
             response = client.get(
-                "/download/documents/testfile.txt"
+                "/download/documents/testfile.txt",
             )
             assert response.status_code == 403
 
@@ -352,7 +352,7 @@ def test_proxy_download_endpoint_connection_error(client: FlaskClient):
             "https://cloudfront.example.com/signed-url",
             "testfile.txt",
             None,
-            200
+            200,
         )
         with patch("v1.routes.download.requests.get") as mock_request:
             mock_request.side_effect = (
@@ -360,7 +360,7 @@ def test_proxy_download_endpoint_connection_error(client: FlaskClient):
             )
 
             response = client.get(
-                "/download/documents/testfile.txt"
+                "/download/documents/testfile.txt",
             )
             assert response.status_code == 500
             assert response.get_json()["error"] == "Failed to fetch file"
@@ -374,36 +374,36 @@ def test_download_file_both_signing_methods_fail(client: FlaskClient, mock_s3):
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head_object:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
 
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_cf_url:
                 mock_cf_url.side_effect = Exception(
-                    "CloudFront signing failed"
+                    "CloudFront signing failed",
                 )
 
                 with patch(
-                    "v1.routes.download.s3.generate_presigned_url"
+                    "v1.routes.download.s3.generate_presigned_url",
                 ) as mock_s3_url:
                     mock_s3_url.side_effect = ClientError(
                         {
                             "Error":
                             {
                                 "Code": "InternalError",
-                                "Message": "S3 internal error"
-                            }
+                                "Message": "S3 internal error",
+                            },
                         },
-                        "GeneratePresignedUrl"
+                        "GeneratePresignedUrl",
                     )
 
                     response = client.get(
-                        "/download?file_key=documents/testfile.txt"
+                        "/download?file_key=documents/testfile.txt",
                     )
                     assert response.status_code == 500
                     assert response.get_json()["error"] == (
@@ -419,21 +419,21 @@ def test_custom_policy_generation(client: FlaskClient, mock_s3):
     mock_s3.put_object(
         Bucket=Config.S3_BUCKET_NAME,
         Key="documents/testfile.txt",
-        Body=b"test content"
+        Body=b"test content",
     )
 
-    with patch("v1.routes.download.s3.head_object") as mock_head_object:
+    with patch("v1.routes.download.s3.head_object"):
         with patch("v1.routes.download.wait") as mock_wait:
             mock_wait.return_value = True
             with patch(
-                "v1.routes.download.cloudfront_signer.generate_presigned_url"
+                "v1.routes.download.cloudfront_signer.generate_presigned_url",
             ) as mock_generate_url:
                 mock_generate_url.return_value = (
                     "https://cloudfront.example.com/signed-url"
                 )
 
-                response = client.get(
-                    "/download?file_key=documents/testfile.txt"
+                client.get(
+                    "/download?file_key=documents/testfile.txt",
                 )
 
                 # Verify the custom policy was used

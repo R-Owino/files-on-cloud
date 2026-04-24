@@ -26,13 +26,13 @@ def test_register_get(client: FlaskClient):
 def test_register_post_success(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test successful user registration returns JSON with redirect URL"""
     response = client.post("/register", data={
         "email": "test@example.com",
         "username": "testuser",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 200
@@ -49,7 +49,7 @@ def test_register_post_email_exists(mock_email_exists, client: FlaskClient):
     response = client.post("/register", data={
         "email": "existing@example.com",
         "username": "existinguser",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
     assert response.status_code == 409
     assert response.json == {"message": "User with email already exists."}
@@ -60,17 +60,17 @@ def test_register_post_email_exists(mock_email_exists, client: FlaskClient):
 def test_register_post_failure(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test failed user registration returns 400 status"""
     response = client.post("/register", data={
         "email": "test@example.com",
         "username": "testuser",
-        "password": "WeakPass"
+        "password": "WeakPass",
     })
     assert response.status_code == 400
     assert response.json == {
-        "message": "Registration failed. Please check your inputs."
+        "message": "Registration failed. Please check your inputs.",
     }
 
 
@@ -80,13 +80,13 @@ def test_register_post_failure(
 def test_register_post_server_error(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test server error during registration returns 500 status"""
     response = client.post("/register", data={
         "email": "testuser@example.com",
         "username": "testuser",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 500
@@ -98,13 +98,13 @@ def test_register_post_server_error(
 def test_register_post_verification_email_in_session(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test that verification email is properly stored in session"""
     response = client.post("/register", data={
         "email": "test@example.com",
         "username": "testuser",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 200
@@ -119,12 +119,12 @@ def test_register_post_verification_email_in_session(
 def test_register_post_missing_username(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test registration with missing username"""
     response = client.post("/register", data={
         "email": "test@example.com",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 400
@@ -136,12 +136,12 @@ def test_register_post_missing_username(
 def test_register_post_missing_password(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test registration with missing password"""
     response = client.post("/register", data={
         "email": "test@example.com",
-        "username": "testuser"
+        "username": "testuser",
     })
 
     assert response.status_code == 400
@@ -153,12 +153,12 @@ def test_register_post_missing_password(
 def test_register_post_missing_email(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test registration with missing email"""
     response = client.post("/register", data={
         "username": "testuser",
-        "password": "SecurePass123!"
+        "password": "SecurePass123!",
     })
 
     assert response.status_code == 400
@@ -170,13 +170,13 @@ def test_register_post_missing_email(
 def test_register_post_empty_data(
     mock_register_user,
     mock_email_exists,
-    client: FlaskClient
+    client: FlaskClient,
 ):
     """Test registration with empty form data"""
     response = client.post("/register", data={
         "email": "",
         "username": "",
-        "password": ""
+        "password": "",
     })
 
     assert response.status_code == 400
