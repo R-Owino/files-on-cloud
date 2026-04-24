@@ -161,4 +161,3 @@ FilesOnCloud is open source under the MIT License. See the [LICENSE](LICENSE) fi
 2. [Part 2: The Infrastructure](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-6fff6bbacc3d)
 3. [Part 3: The App](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-aee7c185867b)
 4. [Part 4: The Deployment](https://medium.com/@r-owino/files-on-cloud-hands-on-aws-project-64af111843b9)
-
