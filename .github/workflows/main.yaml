@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - remmy
+      - main
   pull_request:
     branches:
-      - remmy
+      - main
 
 permissions:
   id-token: write
@@ -31,7 +31,7 @@ jobs:
     secrets: inherit
 
   deploy-infrastructure:
-    if: github.ref == 'refs/heads/remmy'
+    if: github.ref == 'refs/heads/main'
     needs: [build, test]
     uses: ./.github/workflows/ci-deploy-infra.yaml
     with:
@@ -39,7 +39,7 @@ jobs:
     secrets: inherit
 
   deploy-application:
-    if: github.ref == 'refs/heads/remmy'
+    if: github.ref == 'refs/heads/main'
     needs: [build, test, deploy-infrastructure]
     uses: ./.github/workflows/ci-deploy-app.yaml
     with:
@@ -50,7 +50,7 @@ jobs:
     secrets: inherit
 
   cleanup:
-    if: always() && (github.ref == 'refs/heads/remmy')
+    if: always() && (github.ref == 'refs/heads/main')
     needs: [deploy-application]
     runs-on: ubuntu-latest
     env:
