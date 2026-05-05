@@ -21,7 +21,10 @@ services:
       terraform -chdir=infra validate;
       terraform -chdir=infra plan -out=tfplan;
       terraform -chdir=infra apply -input=false tfplan;
-      touch /app/terraform-complete"
+      touch /app/terraform-complete;
+      trap 'terraform -chdir=infra destroy -auto-approve && rm -f /app/terraform-complete' TERM INT;
+      tail -f /dev/null & wait"
+    stop_grace_period: 30m
     healthcheck:
       test: ["CMD", "sh", "-c", "if [ -f /app/terraform-complete ]; then exit 0; else exit 1; fi"]
       interval: 15s
