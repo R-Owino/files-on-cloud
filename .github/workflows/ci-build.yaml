@@ -58,6 +58,14 @@ jobs:
       - name: Authenticate with Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Ensure ECR repositories exist
+        run: |
+          for repo in filesoncloud-app filesoncloud-redis; do
+            aws ecr describe-repositories --repository-names $repo --region $AWS_REGION 2>/dev/null || \
+              aws ecr create-repository --repository-name $repo --region $AWS_REGION \
+                --image-scanning-configuration scanOnPush=true
+          done
+
       - name: Create private key file
         run: |
           mkdir -p api/v1/routes
@@ -70,11 +78,7 @@ jobs:
           SHORT_SHA="${{ github.sha }}"
           SHORT_SHA=${SHORT_SHA:0:7}
 
-          if [ "${{ github.ref }}" == "refs/heads/remmy" ]; then
-            TAG="latest"
-          else
-            TAG="${BRANCH_NAME}-${SHORT_SHA}"
-          fi
+          TAG="${BRANCH_NAME}-${SHORT_SHA}"
 
           echo "Generated tag: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT

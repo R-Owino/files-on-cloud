@@ -45,6 +45,13 @@ jobs:
       - name: Run Terraform init
         run: terraform -chdir=infra init
 
+      - name: Import pre-existing ECR repositories
+        run: |
+          for repo in filesoncloud-app filesoncloud-redis; do
+            resource="module.ecr.aws_ecr_repository.${repo//-/_}"
+            terraform -chdir=infra import $resource $repo 2>/dev/null || true
+          done
+
       - name: Plan and apply infrastructure
         run: |
           FLASK_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}"
