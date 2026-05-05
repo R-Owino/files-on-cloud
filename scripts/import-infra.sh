@@ -48,6 +48,12 @@ SM_ARN=$(lookup aws secretsmanager describe-secret \
 [ -n "${SM_ARN:-}" ] && import \
   "module.secrets-manager.aws_secretsmanager_secret.app_secrets" "$SM_ARN"
 
+echo "## Lambda permissions ##"
+import "module.api-gateway.aws_lambda_permission.file_metadata"  "${P}-fetch-file-metadata-prod/AllowExecutionFromAPIGateway"
+import "module.api-gateway.aws_lambda_permission.delete_lambda"  "${P}-delete-prod/AllowExecutionFromAPIGateway"
+import "module.s3.aws_lambda_permission.upload_metadata_lambda"  "${P}-upload-prod/AllowS3Invoke"
+import "module.cognito.aws_lambda_permission.allow_cognito"      "${P}-userdata-prod/AllowCognitoInvoke"
+
 echo "## CloudFront ##"
 OAC_ID=$(lookup aws cloudfront list-origin-access-controls \
   --query "OriginAccessControlList.Items[?Name=='${P}-s3-oac'].Id|[0]" --output text)
@@ -59,9 +65,40 @@ PK_ID=$(lookup aws cloudfront list-public-keys \
 [ -n "${PK_ID:-}" ] && import \
   "module.cloudfront.aws_cloudfront_public_key.files_key" "$PK_ID"
 
+KG_ID=$(lookup aws cloudfront list-key-groups \
+  --query "KeyGroupList.Items[?KeyGroup.KeyGroupConfig.Name=='${P}-key-group'].KeyGroup.Id|[0]" --output text)
+[ -n "${KG_ID:-}" ] && import \
+  "module.cloudfront.aws_cloudfront_key_group.files_key_group" "$KG_ID"
+
 echo "## ALB target group ##"
 TG_ARN=$(lookup aws elbv2 describe-target-groups --names "${P}-tg" \
   --query "TargetGroups[0].TargetGroupArn" --output text)
 [ -n "${TG_ARN:-}" ] && import "module.alb.aws_lb_target_group.app" "$TG_ARN"
+
+echo "## VPC endpoints ##"
+VPC_ID=$(lookup aws ec2 describe-vpcs \
+  --filters "Name=tag:Name,Values=${P}-vpc" \
+  --query "Vpcs[0].VpcId" --output text)
+
+if [ -n "${VPC_ID:-}" ]; then
+  vpc_ep() {
+    local tf_name="$1" svc="$2"
+    EP_ID=$(lookup aws ec2 describe-vpc-endpoints \
+      --filters "Name=service-name,Values=com.amazonaws.${AWS_REGION}.${svc}" \
+                "Name=vpc-id,Values=${VPC_ID}" \
+                "Name=state,Values=available" \
+      --query "VpcEndpoints[0].VpcEndpointId" --output text)
+    [ -n "${EP_ID:-}" ] && import "module.vpc.aws_vpc_endpoint.${tf_name}" "$EP_ID"
+  }
+
+  vpc_ep secretsmanager  secretsmanager
+  vpc_ep ssm             ssm
+  vpc_ep ecr_api         ecr.api
+  vpc_ep ecr_dkr         ecr.dkr
+  vpc_ep logs            logs
+  vpc_ep apigateway      execute-api
+  vpc_ep s3              s3
+  vpc_ep dynamodb        dynamodb
+fi
 
 echo "## Done ##"
