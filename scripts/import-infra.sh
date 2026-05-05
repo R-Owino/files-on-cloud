@@ -70,6 +70,12 @@ KG_ID=$(lookup aws cloudfront list-key-groups \
 [ -n "${KG_ID:-}" ] && import \
   "module.cloudfront.aws_cloudfront_key_group.files_key_group" "$KG_ID"
 
+echo "## API Gateway stage ##"
+API_ID=$(lookup aws apigateway get-rest-apis \
+  --query "items[?name=='${P}-prod-rest-api'].id|[0]" --output text)
+[ -n "${API_ID:-}" ] && import \
+  "module.api-gateway.aws_api_gateway_stage.files" "${API_ID}/prod"
+
 echo "## ALB target group ##"
 TG_ARN=$(lookup aws elbv2 describe-target-groups --names "${P}-tg" \
   --query "TargetGroups[0].TargetGroupArn" --output text)
