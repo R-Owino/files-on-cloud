@@ -84,3 +84,8 @@ output "secret_name" {
   description = "Name of the secrets manager secret"
   value       = module.secrets-manager.secret_name
 }
+
+output "certificate_arn" {
+  description = "ARN of the ACM SSL certificate"
+  value       = module.acm.certificate_arn
+}

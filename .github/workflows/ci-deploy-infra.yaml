@@ -48,7 +48,21 @@ jobs:
       - name: Import pre-existing AWS resources
         run: bash scripts/import-infra.sh infra
 
-      - name: Plan and apply infrastructure
+      - name: Stage 1 - provision certificate and DNS validation records
+        run: |
+          terraform -chdir=infra apply -auto-approve \
+            -target=module.acm.aws_acm_certificate.filesoncloud_cert \
+            -target=module.acm.aws_route53_record.cert_validation
+
+      - name: Stage 1 - wait for certificate validation
+        run: |
+          CERT_ARN=$(terraform -chdir=infra output -raw certificate_arn)
+          echo "Waiting for certificate: ${CERT_ARN}"
+          aws acm wait certificate-validated \
+            --certificate-arn "${CERT_ARN}" \
+            --region "${AWS_REGION}"
+
+      - name: Stage 2 - plan full infrastructure
         run: |
           FLASK_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}"
           REDIS_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-redis:${{ inputs.image-tag }}"
@@ -58,7 +72,7 @@ jobs:
             -var="redis_image_uri=${REDIS_IMAGE_URI}" \
             -out=tfplan
 
-      - name: Run Terraform apply
+      - name: Stage 2 - apply full infrastructure
         run: terraform -chdir=infra apply -auto-approve tfplan
 
       - name: Infra outputs for deploy app pipeline

@@ -1,6 +1,6 @@
 output "certificate_arn" {
   description = "The ARN of the SSL certificate"
-  value       = aws_acm_certificate_validation.filesoncloud_cert_validation.certificate_arn
+  value       = aws_acm_certificate.filesoncloud_cert.arn
 }
 
 output "certificate_domain_name" {
