@@ -13,11 +13,17 @@ permissions:
   contents: read
 
 jobs:
+  bootstrap-persistent:
+    uses: ./.github/workflows/ci-bootstrap-persistent.yaml
+    secrets: inherit
+
   build:
+    needs: bootstrap-persistent
     uses: ./.github/workflows/ci-build.yaml
     secrets: inherit
 
   build-test:
+    needs: bootstrap-persistent
     uses: ./.github/workflows/ci-build.yaml
     with:
       build-test-image: true

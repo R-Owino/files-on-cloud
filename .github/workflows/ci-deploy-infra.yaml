@@ -45,9 +45,6 @@ jobs:
       - name: Run Terraform init
         run: terraform -chdir=infra init
 
-      - name: Import pre-existing AWS resources
-        run: bash scripts/import-infra.sh infra
-
       - name: Stage 1 - provision certificate and DNS validation records
         run: |
           terraform -chdir=infra apply -auto-approve \
@@ -62,25 +59,18 @@ jobs:
             --certificate-arn "${CERT_ARN}" \
             --region "${AWS_REGION}"
 
-      - name: Stage 2 - apply full infrastructure
+      - name: Stage 2 - plan full infrastructure
         run: |
           FLASK_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}"
           REDIS_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-redis:${{ inputs.image-tag }}"
 
-          plan() {
-            terraform -chdir=infra plan \
-              -var="flask_image_uri=${FLASK_IMAGE_URI}" \
-              -var="redis_image_uri=${REDIS_IMAGE_URI}" \
-              -out=tfplan
-          }
+          terraform -chdir=infra plan \
+            -var="flask_image_uri=${FLASK_IMAGE_URI}" \
+            -var="redis_image_uri=${REDIS_IMAGE_URI}" \
+            -out=tfplan
 
-          plan
-          if ! terraform -chdir=infra apply -auto-approve tfplan; then
-            echo "Apply failed — importing pre-existing resources and retrying..."
-            bash scripts/import-infra.sh infra
-            plan
-            terraform -chdir=infra apply -auto-approve tfplan
-          fi
+      - name: Stage 2 - apply full infrastructure
+        run: terraform -chdir=infra apply -auto-approve tfplan
 
       - name: Infra outputs for deploy app pipeline
         id: terraform-outputs
