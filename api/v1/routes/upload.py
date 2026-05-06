@@ -174,7 +174,11 @@ def get_chunk_upload_url():
         return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        s3 = boto3.client("s3")
+        s3 = boto3.client(
+            "s3",
+            region_name=v1.config.Config.AWS_REGION,
+            config=Config(signature_version="s3v4"),
+        )
         folder = get_folder(os.path.splitext(file_name)[1][1:])
         file_key = f"{folder}/{secure_filename(file_name)}"
 

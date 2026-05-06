@@ -7,6 +7,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 from v1.config import Config
 from urllib.parse import unquote_plus
+from botocore.client import Config as BotocoreConfig
 from botocore.exceptions import ClientError
 from flask import Blueprint, jsonify, request, session, Response
 from botocore.signers import CloudFrontSigner
@@ -24,7 +25,11 @@ CLOUDFRONT_DOMAIN = Config.CLOUDFRONT_DOMAIN
 KEY_PAIR_ID = Config.CLOUDFRONT_PUBLIC_KEY_ID
 PRIVATE_KEY_PATH = os.path.join(os.path.dirname(__file__), "private_key.pem")
 
-s3 = boto3.client("s3")
+s3 = boto3.client(
+    "s3",
+    region_name=Config.AWS_REGION,
+    config=BotocoreConfig(signature_version="s3v4"),
+)
 BUCKET_NAME = Config.S3_BUCKET_NAME
 
 
