@@ -194,13 +194,9 @@ def delete_user(access_token: str) -> Dict[str, bool | str]:
             - "message" (str, optional): error message if the deletion fails
     """
     try:
-        # delete from cognito userpool
-        cognito_client.delete_user(
-            AccessToken=access_token,
-        )
-
-        # delete from DynamoDB
         email = session.get("email")
+
+        # delete from DynamoDB first so Cognito is only removed on success
         dynamodb = boto3.resource("dynamodb", region_name=Config.AWS_REGION)
         table = dynamodb.Table(Config.USERDATA_DYNAMODB_TABLE_NAME)
 
@@ -214,6 +210,9 @@ def delete_user(access_token: str) -> Dict[str, bool | str]:
                 "Success": False,
                 "message": "User not found in database",
             }
+
+        # delete from Cognito only after DynamoDB succeeds
+        cognito_client.delete_user(AccessToken=access_token)
 
         session.clear()
         return {"Success": True}
