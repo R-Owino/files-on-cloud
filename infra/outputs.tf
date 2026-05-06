@@ -57,12 +57,12 @@ output "cloudfront_distribution_id" {
 
 output "app_repository_url" {
   description = "Flask app ECR repository URL"
-  value       = module.ecr.app_repository_url
+  value       = data.terraform_remote_state.persistent.outputs.app_repository_url
 }
 
 output "redis_repository_url" {
   description = "Redis ECR repository URL"
-  value       = module.ecr.redis_repository_url
+  value       = data.terraform_remote_state.persistent.outputs.redis_repository_url
 }
 
 output "ecs_cluster_name" {

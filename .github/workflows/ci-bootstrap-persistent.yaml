@@ -1,0 +1,32 @@
+name: Bootstrap Persistent Infrastructure
+
+on:
+  workflow_call:
+    secrets:
+      AWS_ACCOUNT_ID: { required: true }
+      AWS_REGION: { required: true }
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: ./.github/actions/terraform-setup
+
+      - name: Setup AWS credentials
+        uses: ./.github/actions/aws-setup
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/filesoncloud-oidc
+          role-session-name: github-persistent
+
+      - name: Terraform init
+        run: terraform -chdir=infra/persistent init
+
+      - name: Apply persistent infrastructure
+        run: terraform -chdir=infra/persistent apply -auto-approve

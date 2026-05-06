@@ -1,5 +1,15 @@
 # main entry file for terraform modules
 
+data "terraform_remote_state" "persistent" {
+  backend = "s3"
+  config = {
+    bucket  = "filesoncloud-terraform-state-7byr6f"
+    key     = "filesoncloud/persistent.tfstate"
+    region  = var.aws_region
+    encrypt = true
+  }
+}
+
 module "acm" {
   source = "./modules/acm"
 
@@ -64,13 +74,6 @@ module "dynamodb" {
   documents_metadata_table_name = var.documents_metadata_table_name
 }
 
-module "ecr" {
-  source = "./modules/ecr"
-
-  project_name = var.project_name
-  environment  = var.environment
-}
-
 module "ecs" {
   source = "./modules/ecs"
 
@@ -81,8 +84,8 @@ module "ecs" {
   private_subnet_ids          = module.vpc.private_subnet_ids
   alb_security_group_id       = module.alb.security_group_id
   target_group_arn            = module.alb.target_group_arn
-  flask_image_uri             = var.flask_image_uri != "" ? var.flask_image_uri : "${module.ecr.app_repository_url}:latest"
-  redis_image_uri             = var.redis_image_uri != "" ? var.redis_image_uri : "${module.ecr.redis_repository_url}:latest"
+  flask_image_uri             = var.flask_image_uri != "" ? var.flask_image_uri : "${data.terraform_remote_state.persistent.outputs.app_repository_url}:latest"
+  redis_image_uri             = var.redis_image_uri != "" ? var.redis_image_uri : "${data.terraform_remote_state.persistent.outputs.redis_repository_url}:latest"
   s3_bucket_arn               = module.s3.bucket_arn
   documents_table_arn         = module.dynamodb.documents_metadata_table_arn
   userdata_table_arn          = module.dynamodb.userdata_table_arn
