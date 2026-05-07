@@ -58,7 +58,7 @@ Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
 ```bash
 # Create and activate a virtual environment
 uv venv
-source .venv/bin/activate 
+source .venv/bin/activate
 
 # Install all dependencies including dev tools
 uv sync
