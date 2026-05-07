@@ -2,32 +2,19 @@ name: Test Pipeline
 
 on:
   workflow_call:
-    inputs:
-      image-tag: { required: true, type: string }
     secrets:
-      AWS_ACCOUNT_ID: { required: true }
-      AWS_REGION: { required: true }
       PRIVATE_KEY: { required: true }
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup AWS credentials
-        uses: ./.github/actions/aws-setup
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/filesoncloud-oidc
-          role-session-name: github-test
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Create private key file
         run: |
@@ -35,13 +22,8 @@ jobs:
           echo "${{ secrets.PRIVATE_KEY }}" > api/v1/routes/private_key.pem
 
       - name: Run tests
-        run: |
-          TEST_IMAGE_URI="${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ inputs.image-tag }}-test"
-
-          docker run --rm \
-            -v $(pwd)/api/v1/routes/private_key.pem:/app/v1/routes/private_key.pem \
-            -e AWS_ACCESS_KEY_ID=test \
-            -e AWS_SECRET_ACCESS_KEY=test \
-            -e AWS_DEFAULT_REGION=us-east-1 \
-            "${TEST_IMAGE_URI}" \
-            python -m pytest tests/ -v
+        run: uv run --project api pytest api/tests/ -v
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
