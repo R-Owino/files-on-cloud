@@ -3,7 +3,7 @@
 # Build lambda layer dependencies
 resource "null_resource" "lambda_layer_build" {
   triggers = {
-    requirements = filemd5("${path.module}/requirements.txt")
+    lockfile = filemd5("${path.module}/uv.lock")
   }
 
   provisioner "local-exec" {
@@ -12,14 +12,13 @@ resource "null_resource" "lambda_layer_build" {
       cd "${path.module}"
       rm -rf layer_package lambda_layer.zip
       mkdir -p layer_package/python
-      pip install \
-        --platform linux_x86_64 \
+      uv export --frozen --no-hashes --no-dev > /tmp/lambda_layer_reqs.txt
+      uv pip install \
+        --python 3.12 \
         --target layer_package/python/ \
-        --implementation cp \
-        --python-version 3.12 \
-        --only-binary=:all: \
-        --upgrade \
-        -r requirements.txt
+        --only-binary :all: \
+        -r /tmp/lambda_layer_reqs.txt
+      rm /tmp/lambda_layer_reqs.txt
       cd layer_package && zip -r ../lambda_layer.zip .
     EOT
   }
@@ -36,7 +35,7 @@ resource "aws_lambda_layer_version" "dependencies_layer" {
   filename            = "${path.module}/lambda_layer.zip"
   layer_name          = "${var.project_name}-dependencies-layer-${var.environment}"
   compatible_runtimes = ["python3.12"]
-  source_code_hash    = null_resource.lambda_layer_build.triggers.requirements
+  source_code_hash    = null_resource.lambda_layer_build.triggers.lockfile
 }
 
 # create zip files for the lambda functions

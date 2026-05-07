@@ -1,0 +1,8 @@
+[project]
+name = "filesOnCloud-lambda-layer"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "PyJWT==2.12.1",
+    "requests==2.33.1",
+]
