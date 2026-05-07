@@ -122,7 +122,8 @@
     </div>
 
     <footer>
-      <p>&copy; 2025 Files on Cloud. All rights reserved.</p>
+      <p>&copy; <span id="year"></span> Files on Cloud. All rights reserved.</p>
     </footer>
+    <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
   </body>
 </html>
