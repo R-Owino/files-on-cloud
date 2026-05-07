@@ -24,7 +24,8 @@
         "dynamodb:UpdateItem",
         "dynamodb:DeleteItem",
         "dynamodb:Query",
-        "dynamodb:Scan"
+        "dynamodb:Scan",
+        "dynamodb:DescribeTable"
       ],
       "Resource": [
         "${documents_table_arn}",
@@ -37,7 +38,8 @@
       "Sid": "CloudFrontAccess",
       "Effect": "Allow",
       "Action": [
-        "cloudfront:CreateInvalidation"
+        "cloudfront:CreateInvalidation",
+        "cloudfront:GetDistribution"
       ],
       "Resource": "${cloudfront_distribution_arn}"
     },
@@ -51,7 +53,8 @@
         "cognito-idp:InitiateAuth",
         "cognito-idp:ListUsers",
         "cognito-idp:AdminGetUser",
-        "cognito-idp:DeleteUser"
+        "cognito-idp:DeleteUser",
+        "cognito-idp:DescribeUserPool"
       ],
       "Resource": "${cognito_userpool_arn}"
     }
