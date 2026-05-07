@@ -2,12 +2,6 @@ name: Build Pipeline
 
 on:
   workflow_call:
-    inputs:
-      build-test-image:
-        description: "Whether to build and push test image"
-        required: false
-        default: false
-        type: boolean
     secrets:
       AWS_ACCOUNT_ID: { required: true }
       AWS_REGION: { required: true }
@@ -89,19 +83,6 @@ jobs:
             ${{ steps.meta.outputs.tags }}
             ${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ steps.extract-tag.outputs.tag }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64
-
-      - name: Build and push test Docker image
-        if: inputs.build-test-image
-        id: build-test-image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: api/Dockerfile
-          target: test
-          push: true
-          tags: |
-            ${{ env.ECR_REGISTRY }}/filesoncloud-app:${{ steps.extract-tag.outputs.tag }}-test
           platforms: linux/amd64
 
       - name: Build and push Redis Docker image

@@ -22,18 +22,9 @@ jobs:
     uses: ./.github/workflows/ci-build.yaml
     secrets: inherit
 
-  build-test:
-    needs: bootstrap-persistent
-    uses: ./.github/workflows/ci-build.yaml
-    with:
-      build-test-image: true
-    secrets: inherit
-
   test:
-    needs: build
+    needs: bootstrap-persistent
     uses: ./.github/workflows/ci-test.yaml
-    with:
-      image-tag: ${{ needs.build.outputs.image-tag }}
     secrets: inherit
 
   deploy-infrastructure:
@@ -54,27 +45,3 @@ jobs:
       service-name: ${{ needs.deploy-infrastructure.outputs.service-name }}
       task-definition-family: ${{ needs.deploy-infrastructure.outputs.task-definition-family }}
     secrets: inherit
-
-  cleanup:
-    if: always() && (github.ref == 'refs/heads/main')
-    needs: [deploy-application]
-    runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_REPOSITORY: filesoncloud-app
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup AWS credentials
-        uses: ./.github/actions/aws-setup
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/filesoncloud-oidc
-          role-session-name: github-cleanup
-
-      - name: Clean up old ECR images
-        run: |
-          aws ecr batch-delete-image \
-            --repository-name ${{ env.ECR_REPOSITORY }} \
-            --image-ids imageTag="${{ needs.build-test.outputs.image-tag }}-test" || echo "Test image already cleaned up"
