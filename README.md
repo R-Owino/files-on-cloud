@@ -35,7 +35,7 @@ FilesOnCloud is an application that allows users to share files on a shared plat
 
 ## Architecture
 
-![arch-diagram](./images/filesoncloud-dev-v2.png)
+![architecture-diagram](https://github.com/user-attachments/assets/36cd011d-711a-4f02-b8c8-1aa72222dd02)
 
 1. **Code Commit** - Developer pushes Flask app code and Terraform modules, triggering the CI pipeline.
 2. **GitHub Actions** - Orchestrates build, test, and deployment; runs Terraform to provision/update AWS resources.
