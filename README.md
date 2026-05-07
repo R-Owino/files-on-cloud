@@ -16,7 +16,7 @@
 ![CI](https://github.com/R-Owino/files-on-cloud/actions/workflows/main.yaml/badge.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields)](http://makeapullrequest.com)
 
-FilesOnCloud is a web application that enables users to share files on a shared platform. Authenticated users can upload, download, view, search, and delete files, while guest users can only view and search files.
+FilesOnCloud is an application that allows users to share files on a shared platform. Authenticated users can upload, download, view, search, and delete files, while guest users can only view and search files.
 
 ## Features
 
@@ -74,47 +74,34 @@ git clone https://github.com/R-Owino/files-on-cloud.git
 cd files-on-cloud
 ```
 
-### Set up CloudFront key pairs
+For full setup and deployment instructions, see the sub-directory READMEs:
 
-The CloudFront signer uses a trusted key group for signed URLs. Generate the RSA key pair:
+- **[api/README.md](api/README.md)** - Flask app, dev environment, tests, Docker build
+- **[infra/README.md](infra/README.md)** - Terraform layers, first-time setup, deployment, teardown
 
-```bash
-openssl genrsa -out private_key.pem 2048
-openssl rsa -pubout -in private_key.pem -out public_key.pem
-```
-
-- Place `public_key.pem` in `infra/modules/cloudfront/`
-- Place `private_key.pem` in `api/v1/routes/`
-
-### Set up GitHub secrets
-
-In your repository under `Settings > Secrets and Variables > Actions > Secrets`, add:
-
-| Secret | Description |
-|---|---|
-| `AWS_ACCOUNT_ID` | Your AWS account ID |
-| `PRIVATE_KEY` | Contents of `api/v1/routes/private_key.pem` |
-
-### Run locally with Docker Compose
+### Quick start - run locally
 
 ```bash
+# 1. Generate CloudFront key pair
+openssl genrsa -out api/v1/routes/private_key.pem 2048
+openssl rsa -pubout -in api/v1/routes/private_key.pem -out infra/modules/cloudfront/public_key.pem
+
+# 2. Start the full stack with Docker Compose
 docker compose up --build
 ```
 
-Open `http://0.0.0.0:5000/` in a browser.
+Open `http://0.0.0.0:5000/` in a browser. `docker compose down` tears down the AWS infrastructure automatically.
 
 ## Running Tests
 
-Tests use `pytest` with `moto` to mock AWS services - no live infrastructure required.
+Tests use `pytest` with `moto` to mock AWS services, no live infrastructure required. Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```bash
-# Set up a virtual environment
-python3 -m venv venv
-source venv/bin/activate
-pip install -r api/requirements.txt
+# Install dependencies
+uv sync --project api
 
 # Run tests from the project root
-python3 -m pytest api/tests/ -v
+uv run --project api pytest api/tests/ -v
 ```
 
 ## API Endpoints
@@ -122,7 +109,7 @@ python3 -m pytest api/tests/ -v
 | Method | Endpoint | Auth Required | Description |
 |---|---|---|---|
 | GET | `/` | No | Landing page |
-| GET | `/main` | Yes | Dashboard — lists 15 recent files |
+| GET | `/main` | No | Dashboard - lists 15 recent files |
 | GET/POST | `/register` | No | User registration |
 | GET/POST | `/confirm` | No | Email confirmation |
 | POST | `/resend-code` | No | Resend confirmation code |
@@ -143,17 +130,35 @@ python3 -m pytest api/tests/ -v
 | GET | `/health/liveness` | No | Liveness probe |
 | GET | `/health/readiness` | No | Readiness probe |
 
+## Project structure
+
+```
+files-on-cloud/
+├── api/                    # Flask application (see api/README.md)
+├── infra/
+│   ├── persistent/         # ECR + OIDC - apply once before the pipeline runs
+│   ├── modules/            # Reusable Terraform modules (VPC, ECS, Lambda, etc.)
+│   ├── bootstrap/          # Creates the S3 remote state bucket
+│   └── (root .tf files)    # Ephemeral stack - applied by CI on every push
+├── redis/                  # Redis Dockerfile with Secrets Manager password fetch
+├── scripts/                # cleanup-aws.sh, redis-health-check.sh
+├── .github/
+│   ├── actions/            # Reusable composite actions (aws-setup, terraform-setup)
+│   └── workflows/          # CI pipeline (build → test → deploy infra → deploy app)
+└── docker-compose.yaml     # Local multi-service environment
+```
+
 ## Contributing
 
 1. Fork the repository.
 2. Create a new branch for your changes.
 3. Make your changes and write tests to cover them.
-4. Run `python3 -m pytest api/tests/ -v` to ensure all tests pass.
+4. Run `uv run --project api pytest api/tests/ -v` to ensure all tests pass.
 5. Commit your changes and open a pull request.
 
 ## License
 
-FilesOnCloud is open source under the MIT License. See the [LICENSE](LICENSE) file for details.
+FilesOnCloud is open source under the GNU AFFERO GPL License. See the [LICENSE](LICENSE) file for details.
 
 ## Articles
 
